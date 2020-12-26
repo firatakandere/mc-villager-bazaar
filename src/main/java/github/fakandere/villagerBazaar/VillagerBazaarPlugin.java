@@ -25,10 +25,12 @@ public class VillagerBazaarPlugin extends JavaPlugin {
     @Inject
     VillagerInteractionListener villagerInteractionListener;
 
-    final private CommandOrchestrator commandOrchestrator = new CommandOrchestrator();
+    @Inject
+    CommandOrchestrator commandOrchestrator;
 
     @Override
     public void onEnable() {
+        //Check Vault's existence
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
@@ -39,12 +41,10 @@ public class VillagerBazaarPlugin extends JavaPlugin {
         Injector injector= module.createInjector();
         injector.injectMembers(this);
 
-        getCommand("bazaar").setExecutor(this.commandOrchestrator);
+        //getCommand("bazaar").setExecutor(this.commandOrchestrator);
         registerCommands();
         getLogger().info("VillagerBazaar plugin is enabled.");
         Bukkit.getPluginManager().registerEvents(this.villagerInteractionListener, this);
-
-        getLogger().info(AnvilGUI.class.toString());
     }
 
     @Override
