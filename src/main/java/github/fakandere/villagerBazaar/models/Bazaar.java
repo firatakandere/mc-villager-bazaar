@@ -8,24 +8,32 @@ import org.bukkit.entity.Player;
 import java.util.*;
 
 public class Bazaar {
-    private Player owner; // or maybe uuid for simplicity
+    private UUID playerUniqueId;
     private BazaarType bazaarType;
     private Map<Item, Integer> stocks = new HashMap<>();
     private List<BazaarItem> items = new ArrayList<>();
     private UUID villagerUniqueId;
 
-    public void setOwner(Player owner) {
+    public BazaarType getBazaarType() {
+        return bazaarType;
+    }
+
+    public UUID getPlayerUniqueId() {
+        return playerUniqueId;
+    }
+
+    public void setPlayerUniqueId(UUID playerUniqueId) {
         if (bazaarType == BazaarType.ADMIN) {
             Bukkit.getLogger().warning("Admin bazaar cannot have an owner.");
             return;
         }
 
-        this.owner = owner;
+        this.playerUniqueId = playerUniqueId;
     }
 
     public void setBazaarType(BazaarType bazaarType)  {
         if (bazaarType == BazaarType.ADMIN) {
-            this.owner = null;
+            this.playerUniqueId = null;
         }
 
         this.bazaarType = bazaarType;
@@ -47,11 +55,22 @@ public class Bazaar {
         }
     }
 
+    public void removeStock(Item item, int amount) throws InvalidInputException {
+        if (amount < 0) {
+            throw new InvalidInputException("A positive amount is expected.");
+        }
+
+        if (stocks.containsKey(item)) {
+            stocks.put(item, stocks.get(item) - amount);
+        }
+    }
+
     public void setItems(List<BazaarItem> items) {
         this.items = items;
     }
 
     public void addItem(BazaarItem item) {
+        item.setBazaar(this);
         items.add(item);
     }
 

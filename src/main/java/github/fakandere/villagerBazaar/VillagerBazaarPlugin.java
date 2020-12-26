@@ -1,5 +1,6 @@
 package github.fakandere.villagerBazaar;
 
+import com.google.inject.Injector;
 import com.google.inject.Inject;
 import github.fakandere.villagerBazaar.listeners.VillagerInteractionListener;
 import net.wesjd.anvilgui.AnvilGUI;
@@ -28,11 +29,22 @@ public class VillagerBazaarPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        //getCommand("bazaar").setExecutor(this.commandOrchestrator);
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        BinderModule module = new BinderModule(this);
+        Injector injector= module.createInjector();
+        injector.injectMembers(this);
+
+        getCommand("bazaar").setExecutor(this.commandOrchestrator);
         registerCommands();
         getLogger().info("VillagerBazaar plugin is enabled.");
         Bukkit.getPluginManager().registerEvents(this.villagerInteractionListener, this);
 
+        getLogger().info(AnvilGUI.class.toString());
     }
 
     @Override
