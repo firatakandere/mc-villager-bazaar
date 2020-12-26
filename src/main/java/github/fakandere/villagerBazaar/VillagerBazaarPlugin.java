@@ -26,7 +26,7 @@ public class VillagerBazaarPlugin extends JavaPlugin {
     VillagerInteractionListener villagerInteractionListener;
 
     @Inject
-    CommandOrchestrator commandOrchestrator;
+    ICommandOrchestrator commandOrchestrator;
 
     @Override
     public void onEnable() {
