@@ -16,7 +16,7 @@ import javax.inject.Inject;
 import java.util.Map;
 import java.util.UUID;
 
-public class BazaarManager {
+public class BazaarManager implements IBazaarManager {
 
     private Map<UUID, Bazaar> bazaars;
     private IBazaarRepository bazaarRepository;
@@ -85,6 +85,8 @@ public class BazaarManager {
             bazaarRepository.updateBazaar(bazaar);
         }
     }
+
+
 
 
 

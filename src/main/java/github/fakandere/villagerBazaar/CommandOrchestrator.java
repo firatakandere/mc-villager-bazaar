@@ -10,7 +10,7 @@ import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CommandOrchestrator implements CommandExecutor {
+public class CommandOrchestrator implements ICommandOrchestrator {
 
     @Inject
     public CommandOrchestrator(final Permission perm) {
