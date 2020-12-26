@@ -1,16 +1,24 @@
 package github.fakandere.villagerBazaar;
 
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
 public class CommandOrchestrator implements CommandExecutor {
 
+    @Inject
+    public CommandOrchestrator(final Permission perm) {
+        this.perm = perm;
+    }
+
     final private Map<String, BazaarCommand> bazaarCommands = new HashMap<>();
+    final private Permission perm;
 
     public void addCommand(String commandName, CommandExecutor executor, String permission) {
         final BazaarCommand bazaarCommand = new BazaarCommand(commandName, executor, permission);
@@ -35,7 +43,7 @@ public class CommandOrchestrator implements CommandExecutor {
 
         final BazaarCommand bazaarCommand = bazaarCommands.get(args[0]);
 
-        if (!commandSender.hasPermission(bazaarCommand.permission)) {
+        if (!perm.has(commandSender, bazaarCommand.permission)) {
             // @todo return no permission
             return false;
         }

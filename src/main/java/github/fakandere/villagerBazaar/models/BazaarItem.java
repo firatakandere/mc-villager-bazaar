@@ -4,16 +4,19 @@ import github.fakandere.villagerBazaar.exceptions.InvalidInputException;
 import org.bukkit.entity.Item;
 
 public class BazaarItem {
+    private Bazaar bazaar;
     private Item item;
     private int amount;
     private float sellPrice;
     private float buyPrice;
 
-    public BazaarItem(Item item, int amount, float sellPrice, float buyPrice) throws InvalidInputException {
+    public BazaarItem(Bazaar bazaar, Item item, int amount, float sellPrice, float buyPrice) throws InvalidInputException {
+        setBazaar(bazaar);
         setItem(item);
         setAmount(amount);
         setSellPrice(sellPrice);
         setBuyPrice(buyPrice);
+        setBazaar(bazaar);
     }
 
     public Item getItem() {
@@ -30,6 +33,10 @@ public class BazaarItem {
 
     public float getBuyPrice() {
         return buyPrice;
+    }
+
+    public Bazaar getBazaar() {
+        return bazaar;
     }
 
     public void setItem(Item item) {
@@ -58,5 +65,9 @@ public class BazaarItem {
         }
 
         this.buyPrice = buyPrice;
+    }
+
+    public void setBazaar(Bazaar bazaar) {
+        this.bazaar = bazaar;
     }
 }
