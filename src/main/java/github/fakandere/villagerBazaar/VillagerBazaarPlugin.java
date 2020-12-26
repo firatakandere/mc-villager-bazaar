@@ -1,5 +1,6 @@
 package github.fakandere.villagerBazaar;
 
+import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class VillagerBazaarPlugin extends JavaPlugin {
@@ -11,6 +12,8 @@ public class VillagerBazaarPlugin extends JavaPlugin {
         getCommand("bazaar").setExecutor(this.commandOrchestrator);
         registerCommands();
         getLogger().info("VillagerBazaar plugin is enabled.");
+
+        getLogger().info(AnvilGUI.class.toString());
     }
 
     @Override

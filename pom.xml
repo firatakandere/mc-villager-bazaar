@@ -27,6 +27,10 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>codemc-snapshots</id>
+            <url>https://repo.codemc.io/repository/maven-snapshots/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -64,6 +68,11 @@
             <artifactId>mockito-core</artifactId>
             <version>3.6.28</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.wesjd</groupId>
+            <artifactId>anvilgui</artifactId>
+            <version>1.4.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
