@@ -3,14 +3,13 @@ package github.fakandere.villagerBazaar;
 import github.fakandere.villagerBazaar.exceptions.InvalidInputException;
 import github.fakandere.villagerBazaar.exceptions.NotFoundException;
 import github.fakandere.villagerBazaar.models.Bazaar;
-import com.google.inject.Inject;
 import github.fakandere.villagerBazaar.models.BazaarItem;
-import github.fakandere.villagerBazaar.utils.AnvilGUIHelper;
-import github.fakandere.villagerBazaar.utils.BazaarManager;
+import github.fakandere.villagerBazaar.prompts.BNumericPrompt;
+import github.fakandere.villagerBazaar.prompts.BStringPrompt;
+import github.fakandere.villagerBazaar.prompts.PromptFactory;
 import github.fakandere.villagerBazaar.utils.IBazaarManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.inventory.ClickType;
@@ -19,6 +18,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.ipvp.canvas.Menu;
 import org.ipvp.canvas.slot.ClickOptions;
 import org.ipvp.canvas.type.ChestMenu;
@@ -42,17 +42,19 @@ public class VillagerBazaar {
     public boolean canEdit = true;
     private Bazaar bazaar;
     private IBazaarManager bazaarManager;
+    private JavaPlugin plugin;
 
 
     public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
 
     public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar,
-                          IBazaarManager bazaarManager) {
+                          IBazaarManager bazaarManager, JavaPlugin plugin) {
         this.p = p;
         this.v = v;
         this.e = e;
         this.bazaar = bazaar;
         this.bazaarManager = bazaarManager;
+        this.plugin = plugin;
     }
 
     public Menu createMenu() {
@@ -182,8 +184,16 @@ public class VillagerBazaar {
 
         //#region Name Changer
         screen.getSlot(11).setClickHandler((player, info) -> {
-            AnvilGUIHelper.prompt(p, "Bazaar Name", v.getCustomName(),
-                    (text) -> v.setCustomName(text.replaceAll("[^a-zA-Z0-9\\s]", "")));
+            new PromptFactory(plugin)
+                .player(p)
+                .addPrompt(new BStringPrompt("Please type your shop's name to the chat, type `cancel` to cancel"), "villagername")
+                .onComplete(map -> {
+                    v.setCustomName(map.get("villagername").toString());
+                })
+                .withTimeout(30)
+                .withCancellationToken("cancel")
+                .build()
+                .begin();
         });
         screen.getSlot(11).setItem(this.getIcon(Material.NAME_TAG, "Change Name"));
         //#endregion,
@@ -275,7 +285,7 @@ public class VillagerBazaar {
                 //Player put item in empty box.
                 ItemStack addingItem = click.getAddingItem();
                 Material m = addingItem.getType();
-                Integer amount = addingItem.getAmount();
+                int amount = addingItem.getAmount();
 
                 player.sendMessage(m.toString());
 
@@ -295,26 +305,29 @@ public class VillagerBazaar {
                         screen.close(player);
                     }
                 } else {
-
-                    AnvilGUIHelper.prompt(player, "Selling Price", "1.00", (sellPriceStr) -> {
-                        double sellingPrice = Double.parseDouble(sellPriceStr);
-                        double buyingPrice = Double.parseDouble("1.00");
-                        try {
-                            this.bazaarManager
-                                    .addItem(this.bazaar, m, sellingPrice, buyingPrice, amount);
-                        } catch (InvalidInputException invalidInputException) {
-                            player.sendMessage("invalidInputException");
-                            screen.close(player);
-                        } catch (UnexpectedException unexpectedException) {
-                            player.sendMessage("unexpectedException");
-                            screen.close(player);
-                        } catch (NotFoundException notFoundException) {
-                            player.sendMessage("notFoundException");
-                            screen.close(player);
-                        }
-
-
-                    });
+                    new PromptFactory(plugin)
+                        .player(p)
+                        .addPrompt(new BNumericPrompt("Enter selling price for 1 item, type `cancel` to cancel", false, true), "sellingprice")
+                        .addPrompt(new BNumericPrompt("Enter buying price for 1 item, type `cancel` to cancel", false, true), "buyingprice")
+                        .onComplete(map -> {
+                            try {
+                                bazaarManager.addItem(bazaar, m, (double)map.get("sellingprice"), (double)map.get("buyingprice"), amount);
+                                player.sendMessage("Your item is added");
+                            } catch (InvalidInputException invalidInputException) {
+                                player.sendMessage("invalidInputException");
+                                screen.close(player);
+                            } catch (UnexpectedException unexpectedException) {
+                                player.sendMessage("unexpectedException");
+                                screen.close(player);
+                            } catch (NotFoundException notFoundException) {
+                                player.sendMessage("notFoundException");
+                                screen.close(player);
+                            }
+                        })
+                        .withTimeout(30)
+                        .withCancellationToken("cancel")
+                        .build()
+                        .begin();
                 }
 
             }

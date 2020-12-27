@@ -2,11 +2,11 @@ package github.fakandere.villagerBazaar.prompts;
 
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationFactory;
+import org.bukkit.conversations.ExactMatchConversationCanceller;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -14,6 +14,7 @@ public class PromptFactory {
 
     private Player player;
     private Consumer<Map<Object, Object>> onComplete;
+    private Conversation conversation;
     private final ConversationFactory conversationFactory;
 
     LinkedList<BPrompt> promptList = new LinkedList<>();
@@ -49,7 +50,15 @@ public class PromptFactory {
     }
 
     public PromptFactory onComplete(Consumer<Map<Object, Object>> onComplete) {
-        this.onComplete = onComplete;
+        this.onComplete = (Map<Object, Object> map) -> {
+            conversation.abandon();
+            onComplete.accept(map);
+        };
+        return this;
+    }
+
+    public PromptFactory withCancellationToken(String cancelInput) {
+        conversationFactory.withConversationCanceller(new ExactMatchConversationCanceller(cancelInput));
         return this;
     }
 
@@ -67,6 +76,7 @@ public class PromptFactory {
         }
 
         promptList.getLast().setOnComplete(onComplete);
-        return conversationFactory.buildConversation(player);
+        conversation = conversationFactory.buildConversation(player);
+        return conversation;
     }
 }

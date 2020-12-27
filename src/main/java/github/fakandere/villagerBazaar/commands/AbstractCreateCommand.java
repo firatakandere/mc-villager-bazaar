@@ -1,6 +1,9 @@
 package github.fakandere.villagerBazaar.commands;
 
-import github.fakandere.villagerBazaar.utils.AnvilGUIHelper;
+import com.google.inject.Inject;
+import github.fakandere.villagerBazaar.VillagerBazaarPlugin;
+import github.fakandere.villagerBazaar.prompts.BStringPrompt;
+import github.fakandere.villagerBazaar.prompts.PromptFactory;
 import org.bukkit.Location;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.EntityType;
@@ -10,6 +13,10 @@ import org.bukkit.entity.Villager;
 import java.util.UUID;
 
 public abstract class AbstractCreateCommand implements CommandExecutor {
+
+    @Inject
+    VillagerBazaarPlugin plugin;
+
     protected UUID createVillager(Player p) {
         Location targetLocation = p.getTargetBlock(null, 10).getLocation();
         targetLocation.add(0.5, 1, 0.5);
@@ -24,7 +31,16 @@ public abstract class AbstractCreateCommand implements CommandExecutor {
         v.setVillagerType(Villager.Type.PLAINS);
         v.setProfession(Villager.Profession.NONE);
 
-        AnvilGUIHelper.prompt(p, "What is your shop's name", "Shop?", (text) -> v.setCustomName(text.replaceAll("[^a-zA-Z0-9\\s]", "")));
+//        new PromptFactory(plugin)
+//                .player(p)
+//                .addPrompt(new BStringPrompt("Please type your shop's name to the chat, type `cancel` to cancel"), "villagername")
+//                .onComplete(map -> {
+//                    v.setCustomName(map.get("villagername").toString());
+//                })
+//                .withTimeout(30)
+//                .withCancellationToken("cancel")
+//                .build()
+//                .begin();
 
         return v.getUniqueId();
     }
