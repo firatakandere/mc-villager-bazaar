@@ -1,6 +1,7 @@
 package github.fakandere.villagerBazaar;
 
 import com.google.inject.Inject;
+import github.fakandere.villagerBazaar.models.Bazaar;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -9,6 +10,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.ipvp.canvas.Menu;
 import org.ipvp.canvas.type.ChestMenu;
 
@@ -22,40 +24,24 @@ enum VillagerBazaarStage {
     ITEMEDIT,
 }
 
-class VillagerBazaarItem {
-    Material material = Material.GOLD_BLOCK;
-    Double sellPrice = 10.0;
-    Double buyPrice = 5.0;
-    Integer amount = 1;
-}
-
 public class VillagerBazaar {
 
-    @Inject
-    VillagerBazaarPlugin villagerBazaarPlugin;
+    private Player p;
+    private Villager v;
+    private PlayerInteractEntityEvent e;
+    private Bazaar bazaar;
+    private JavaPlugin plugin;
 
-    public Player p;
-    public Villager v;
-    public PlayerInteractEntityEvent e;
-    public boolean canEdit = true;
+    private boolean canEdit = true;
 
-    public ArrayList<VillagerBazaarItem> items = new ArrayList<>();
+    private VillagerBazaarStage stage = VillagerBazaarStage.SELL;
 
-    public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
-
-    public VillagerBazaar() {
-    }
-
-    public void setPlayer(Player p) {
+    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar, JavaPlugin plugin) {
         this.p = p;
-    }
-
-    public void setVillager(Villager v) {
         this.v = v;
-    }
-
-    public void setEvent(PlayerInteractEntityEvent e) {
         this.e = e;
+        this.bazaar = bazaar;
+        this.plugin = plugin;
     }
 
     public Menu createMenu() {
@@ -162,7 +148,7 @@ public class VillagerBazaar {
                     .preventClose()
                     .text(this.v.getCustomName())
                     .title("Shop Name")
-                    .plugin(villagerBazaarPlugin)
+                    .plugin(plugin)
                     .open(p);
         });
         screen.getSlot(11).setItem(this.getIcon(Material.NAME_TAG, "Change Type"));
