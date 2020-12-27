@@ -11,7 +11,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 
 
-public class VillagerInteractionListener implements Listener{
+public class VillagerBazaarInteractionListener implements Listener{
 
     @Inject
     VillagerBazaar vb;
