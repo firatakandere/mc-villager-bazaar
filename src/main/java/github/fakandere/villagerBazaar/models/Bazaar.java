@@ -11,7 +11,7 @@ public class Bazaar implements ConfigurationSerializable {
     private UUID playerUniqueId;
     private BazaarType bazaarType;
     private Map<Material, Integer> stocks = new HashMap<>();
-    private List<BazaarItem> items = new ArrayList<>();
+    private final List<BazaarItem> items = new ArrayList<>();
     private UUID villagerUniqueId;
 
     // Configuration Constants

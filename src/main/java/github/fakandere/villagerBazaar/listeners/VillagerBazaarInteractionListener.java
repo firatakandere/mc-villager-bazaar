@@ -2,7 +2,6 @@ package github.fakandere.villagerBazaar.listeners;
 
 import com.google.inject.Inject;
 import github.fakandere.villagerBazaar.VillagerBazaar;
-import github.fakandere.villagerBazaar.VillagerBazaarPlugin;
 import github.fakandere.villagerBazaar.models.Bazaar;
 import github.fakandere.villagerBazaar.utils.BazaarManager;
 import org.bukkit.entity.Player;
