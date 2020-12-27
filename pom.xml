@@ -75,10 +75,9 @@
             <version>1.4.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.ipvp</groupId>
+            <groupId>com.github.IPVP-MC</groupId>
             <artifactId>canvas</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
-            <scope>compile</scope>
+            <version>aa668fe083</version>
         </dependency>
     </dependencies>
 
@@ -111,15 +110,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-
         </plugins>
     </build>
 </project>
