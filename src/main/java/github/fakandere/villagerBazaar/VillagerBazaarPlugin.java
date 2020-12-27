@@ -8,6 +8,7 @@ import github.fakandere.villagerBazaar.listeners.VillagerBazaarInteractionListen
 import github.fakandere.villagerBazaar.models.Bazaar;
 import github.fakandere.villagerBazaar.models.BazaarItem;
 
+import github.fakandere.villagerBazaar.utils.AnvilGUIHelper;
 import org.bukkit.Bukkit;
 
 
@@ -43,6 +44,7 @@ public class VillagerBazaarPlugin extends JavaPlugin {
             return;
         }
 
+        AnvilGUIHelper.setUp(this);
         BinderModule module = new BinderModule(this);
         Injector injector= module.createInjector();
         injector.injectMembers(this);

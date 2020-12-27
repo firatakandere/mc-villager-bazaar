@@ -1,8 +1,8 @@
 package github.fakandere.villagerBazaar.commands;
 
 import github.fakandere.villagerBazaar.VillagerBazaarPlugin;
+import github.fakandere.villagerBazaar.utils.AnvilGUIHelper;
 import github.fakandere.villagerBazaar.utils.IBazaarManager;
-import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -51,17 +51,8 @@ public class CreateAdminCommand implements CommandExecutor {
         v.setVillagerLevel(5);
         v.setVillagerType(Villager.Type.PLAINS);
         v.setProfession(Villager.Profession.NONE);
-        new AnvilGUI.Builder()
-                .onComplete((player, text) -> {                             //called when the inventory output slot is clicked
-                    v.setCustomName(text.replaceAll("[^a-zA-Z0-9\\s]", ""));
-                    return AnvilGUI.Response.close();
-                })
-                .preventClose()                                             //prevents the inventory from being closed
-                .text("Shop?")                      //sets the text the GUI should start with
-                .title("What is your shop's name")                        //set the title of the GUI (only works in 1.14+)
-                .plugin(plugin)
-                .open(p);                                            //opens the GUI for the player provided
 
+        AnvilGUIHelper.prompt(p, "What is your shop's name", "Shop?", (text) -> v.setCustomName(text.replaceAll("[^a-zA-Z0-9\\s]", "")));
 
         return v.getUniqueId();
     }
