@@ -1,6 +1,7 @@
 package github.fakandere.villagerBazaar;
 
 import github.fakandere.villagerBazaar.models.Bazaar;
+import com.google.inject.Inject;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -9,9 +10,11 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.ipvp.canvas.Menu;
 import org.ipvp.canvas.type.ChestMenu;
+
+
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.stream.IntStream;
 
@@ -24,15 +27,19 @@ enum VillagerBazaarStage {
 
 public class VillagerBazaar {
 
-    private Player p;
-    private Villager v;
-    private PlayerInteractEntityEvent e;
+    @Inject
+    VillagerBazaarPlugin villagerBazaarPlugin;
+
+    public Player p;
+    public Villager v;
+    public PlayerInteractEntityEvent e;
+    public boolean canEdit = true;
+
     private Bazaar bazaar;
     private JavaPlugin plugin;
 
-    private boolean canEdit = true;
 
-    private VillagerBazaarStage stage = VillagerBazaarStage.SELL;
+    public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
 
     public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar, JavaPlugin plugin) {
         this.p = p;
@@ -44,7 +51,7 @@ public class VillagerBazaar {
 
     public Menu createMenu() {
         return ChestMenu.builder(5)
-                .title(this.v.getCustomName().toString())
+                .title(this.v.getCustomName())
                 .build();
     }
 
@@ -170,7 +177,8 @@ public class VillagerBazaar {
         screen.getSlot(11).setClickHandler((player, info) -> {
             this.v.setVillagerType(Villager.Type.DESERT);
         });
-        screen.getSlot(11).setItem(this.getIcon(Material.SAND, "DESERT"));;
+        screen.getSlot(11).setItem(this.getIcon(Material.SAND, "DESERT"));
+        ;
 
         //Jungle Villager
         screen.getSlot(12).setClickHandler((player, info) -> {
@@ -197,10 +205,10 @@ public class VillagerBazaar {
         screen.getSlot(15).setItem(this.getIcon(Material.COARSE_DIRT, "SWAMP"));
 
         //TAIGA Villager
-        screen.getSlot(15).setClickHandler((player, info) -> {
+        screen.getSlot(16).setClickHandler((player, info) -> {
             this.v.setVillagerType(Villager.Type.TAIGA);
         });
-        screen.getSlot(15).setItem(this.getIcon(Material.SPRUCE_WOOD, "TAIGA"));
+        screen.getSlot(16).setItem(this.getIcon(Material.SPRUCE_WOOD, "TAIGA"));
         //#endregion
 
         this.show(screen, this.p);
@@ -210,6 +218,5 @@ public class VillagerBazaar {
         this.stage = VillagerBazaarStage.SELL;
         screen.close(player);
     }
-
 
 }

@@ -4,21 +4,30 @@ import com.google.inject.Injector;
 import com.google.inject.Inject;
 import github.fakandere.villagerBazaar.commands.CreateAdminCommand;
 import github.fakandere.villagerBazaar.commands.CreateCommand;
-import github.fakandere.villagerBazaar.listeners.VillagerInteractionListener;
+import github.fakandere.villagerBazaar.listeners.VillagerBazaarInteractionListener;
 import github.fakandere.villagerBazaar.models.Bazaar;
 import github.fakandere.villagerBazaar.models.BazaarItem;
+
 import org.bukkit.Bukkit;
+
+
+
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+
+
 import org.bukkit.plugin.java.JavaPlugin;
 import org.ipvp.canvas.MenuFunctionListener;
 
+
 public class VillagerBazaarPlugin extends JavaPlugin {
+
+
     @Inject
-    VillagerInteractionListener villagerInteractionListener;
+    VillagerBazaarInteractionListener villagerBazaarInteractionListener;
 
     @Inject
     ICommandOrchestrator commandOrchestrator;
-    
+
     @Inject
     CreateCommand createCommand;
 
@@ -41,13 +50,13 @@ public class VillagerBazaarPlugin extends JavaPlugin {
         registerConfigurationSerializations();
         registerCommands();
         getLogger().info("VillagerBazaar plugin is enabled.");
-        Bukkit.getPluginManager().registerEvents(this.villagerInteractionListener, this);
-
+        Bukkit.getPluginManager().registerEvents(this.villagerBazaarInteractionListener, this);
         Bukkit.getPluginManager().registerEvents(new MenuFunctionListener(), this);
     }
 
     @Override
     public void onDisable() {
+
         getLogger().info("VillagerBazaar plugin is disabled.");
     }
 
@@ -62,4 +71,5 @@ public class VillagerBazaarPlugin extends JavaPlugin {
         ConfigurationSerialization.registerClass(Bazaar.class);
         ConfigurationSerialization.registerClass(BazaarItem.class);
     }
+
 }
