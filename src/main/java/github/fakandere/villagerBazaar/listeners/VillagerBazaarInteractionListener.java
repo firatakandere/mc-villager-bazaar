@@ -12,7 +12,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
-public class VillagerInteractionListener implements Listener{
+public class VillagerBazaarInteractionListener implements Listener{
 
     @Inject
     BazaarManager bazaarManager;

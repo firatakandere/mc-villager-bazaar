@@ -2,7 +2,9 @@ package github.fakandere.villagerBazaar;
 
 import com.google.inject.Inject;
 import net.wesjd.anvilgui.AnvilGUI;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -12,7 +14,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.ipvp.canvas.Menu;
 import org.ipvp.canvas.type.ChestMenu;
 
-import java.util.ArrayList;
+import github.fakandere.villagerBazaar.models.Bazaar;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 enum VillagerBazaarStage {
@@ -32,28 +37,23 @@ public class VillagerBazaar {
     public PlayerInteractEntityEvent e;
     public boolean canEdit = true;
 
-    public ArrayList<VillagerBazaarItem> items = new ArrayList<>();
+    private Bazaar bazaar;
+    private JavaPlugin plugin;
+
 
     public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
 
-    public VillagerBazaar() {
-    }
-
-    public void setPlayer(Player p) {
+    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar, JavaPlugin plugin) {
         this.p = p;
-    }
-
-    public void setVillager(Villager v) {
         this.v = v;
-    }
-
-    public void setEvent(PlayerInteractEntityEvent e) {
         this.e = e;
+        this.bazaar = bazaar;
+        this.plugin = plugin;
     }
 
     public Menu createMenu() {
         return ChestMenu.builder(5)
-                .title(this.v.getCustomName().toString())
+                .title(this.v.getCustomName())
                 .build();
     }
 
@@ -207,10 +207,10 @@ public class VillagerBazaar {
         screen.getSlot(15).setItem(this.getIcon(Material.COARSE_DIRT, "SWAMP"));
 
         //TAIGA Villager
-        screen.getSlot(15).setClickHandler((player, info) -> {
+        screen.getSlot(16).setClickHandler((player, info) -> {
             this.v.setVillagerType(Villager.Type.TAIGA);
         });
-        screen.getSlot(15).setItem(this.getIcon(Material.SPRUCE_WOOD, "TAIGA"));
+        screen.getSlot(16).setItem(this.getIcon(Material.SPRUCE_WOOD, "TAIGA"));
         //#endregion
 
         this.show(screen, this.p);
@@ -221,37 +221,4 @@ public class VillagerBazaar {
         screen.close(player);
     }
 
-
-    public void createBazaar(){
-        //UUID bazaarId = this.createBazaarNPC()
-    }
-
-    public UUID createBazaarNPC(Player p) {
-        Location targetLocation = p.getTargetBlock(null, 10).getLocation();
-        targetLocation.add(0.5, 1, 0.5);
-        //@todo: Is this block appropriate is it lava or water or anything sketchy ?
-        //throw VillagerBazaarInvalidPlacementException
-        Villager v = (Villager) p.getWorld().spawnEntity(targetLocation, EntityType.VILLAGER);
-        //Set properties
-        v.setCustomName("Villager of " + p.getName());
-        v.setInvulnerable(true);
-        v.setAI(false);
-        v.setVillagerLevel(5);
-        v.setVillagerType(Villager.Type.PLAINS);
-        v.setProfession(Villager.Profession.NONE);
-        new AnvilGUI.Builder()
-                .onComplete((player, text) -> {
-                    v.setCustomName(text.replaceAll("[^a-zA-Z0-9\\s]", ""));
-                    return AnvilGUI.Response.close();
-                })
-                .preventClose()
-                .text(v.getCustomName())
-                .title("Bazaar Name")
-                .plugin(villagerBazaarPlugin)
-                .open(p);
-
-
-        return v.getUniqueId();
-
-    }
 }
