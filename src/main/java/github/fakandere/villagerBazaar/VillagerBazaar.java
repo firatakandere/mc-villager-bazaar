@@ -7,11 +7,14 @@ import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.ipvp.canvas.Menu;
+import org.ipvp.canvas.slot.ClickOptions;
 import org.ipvp.canvas.type.ChestMenu;
 
 import github.fakandere.villagerBazaar.models.Bazaar;
@@ -21,10 +24,7 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 
 enum VillagerBazaarStage {
-    SELL,
-    EDIT,
-    CUSTOMIZE,
-    ITEMEDIT,
+    SELL, EDIT, CUSTOMIZE, ITEMADD, ITEMREMOVE, ITEMEDIT
 }
 
 public class VillagerBazaar {
@@ -43,7 +43,8 @@ public class VillagerBazaar {
 
     public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
 
-    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar, JavaPlugin plugin) {
+    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar,
+                          JavaPlugin plugin) {
         this.p = p;
         this.v = v;
         this.e = e;
@@ -52,9 +53,7 @@ public class VillagerBazaar {
     }
 
     public Menu createMenu() {
-        return ChestMenu.builder(5)
-                .title(this.v.getCustomName())
-                .build();
+        return ChestMenu.builder(5).title(this.v.getCustomName()).build();
     }
 
     public ItemStack getIcon(Material m, String text) {
@@ -71,22 +70,18 @@ public class VillagerBazaar {
         //Glass Decorations
         ItemStack glass = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
 
-        IntStream.range(0, 10).forEach(
-                n -> {
-                    screen.getSlot(n).setItem(glass);
-                }
-        );
+        IntStream.range(0, 10).forEach(n -> {
+            screen.getSlot(n).setItem(glass);
+        });
 
         screen.getSlot(17).setItem(glass);
         screen.getSlot(18).setItem(glass);
         screen.getSlot(26).setItem(glass);
         screen.getSlot(27).setItem(glass);
 
-        IntStream.range(35, 45).forEach(
-                n -> {
-                    screen.getSlot(n).setItem(glass);
-                }
-        );
+        IntStream.range(35, 45).forEach(n -> {
+            screen.getSlot(n).setItem(glass);
+        });
     }
 
     public void show(Menu screen, Player p) {
@@ -101,8 +96,10 @@ public class VillagerBazaar {
                 screen.getSlot(43).setClickHandler((player, info) -> {
                     screen.close(p);
                     this.editScreen();
-                });                ;
-                screen.getSlot(43).setItem(this.getIcon(Material.LEGACY_BOOK_AND_QUILL, "Customize"));
+                });
+                ;
+                screen.getSlot(43)
+                      .setItem(this.getIcon(Material.LEGACY_BOOK_AND_QUILL, "Customize"));
             } else {
                 //Return Start Screen
                 screen.getSlot(43).setClickHandler((player, info) -> {
@@ -131,12 +128,22 @@ public class VillagerBazaar {
     public void startBazaar() {
         this.stage = VillagerBazaarStage.SELL;
         Menu screen = createMenu();
+
+        ClickOptions cli = ClickOptions.ALLOW_ALL;
+        screen.getSlot(0).setClickOptions(cli);
+
+        screen.getSlot(0).setClickHandler(((player, clickInformation) -> {
+            player.sendMessage(clickInformation.getAction().toString());
+        }));
+
+
         this.show(screen, this.p);
     }
 
     public void editScreen() {
         this.stage = VillagerBazaarStage.EDIT;
         Menu screen = createMenu();
+
 
         //#region Type Changer
         screen.getSlot(10).setClickHandler((player, info) -> {
@@ -147,18 +154,21 @@ public class VillagerBazaar {
 
         //#region Name Changer
         screen.getSlot(11).setClickHandler((player, info) -> {
-            new AnvilGUI.Builder()
-                    .onComplete((pl, text) -> {
-                        v.setCustomName(text.replaceAll("[^a-zA-Z0-9\\s]", ""));
-                        return AnvilGUI.Response.close();
-                    })
-                    .preventClose()
-                    .text(this.v.getCustomName())
-                    .title("Shop Name")
-                    .plugin(plugin)
-                    .open(p);
+            new AnvilGUI.Builder().onComplete((pl, text) -> {
+                v.setCustomName(text.replaceAll("[^a-zA-Z0-9\\s]", ""));
+                return AnvilGUI.Response.close();
+            }).preventClose().text(this.v.getCustomName()).title("Shop Name").plugin(plugin)
+                                  .open(p);
         });
-        screen.getSlot(11).setItem(this.getIcon(Material.NAME_TAG, "Change Type"));
+        screen.getSlot(11).setItem(this.getIcon(Material.NAME_TAG, "Change Name"));
+        //#endregion,
+
+
+        //#region Item Add Screen
+        screen.getSlot(14).setClickHandler((player, info) -> {
+            this.itemAddScreen();
+        });
+        screen.getSlot(14).setItem(this.getIcon(Material.BUCKET, "Add Item"));
         //#endregion
 
         this.show(screen, this.p);
@@ -212,6 +222,41 @@ public class VillagerBazaar {
         });
         screen.getSlot(16).setItem(this.getIcon(Material.SPRUCE_WOOD, "TAIGA"));
         //#endregion
+
+        this.show(screen, this.p);
+    }
+
+    public void itemAddScreen() {
+        this.stage = VillagerBazaarStage.ITEMADD;
+        Menu screen = createMenu();
+        //FillScreen with Glasses
+        ItemStack glass = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
+        IntStream.range(0, 44).forEach(n -> {
+            screen.getSlot(n).setItem(glass);
+        });
+
+        screen.getSlot(22).setItem(null);
+        ClickOptions cli = ClickOptions.builder().allow(InventoryAction.PLACE_ONE)
+                                       .allow(InventoryAction.PLACE_SOME)
+                                       .allow(InventoryAction.PLACE_ALL)
+                                       .allow(InventoryAction.MOVE_TO_OTHER_INVENTORY)
+                                       .allow(ClickType.LEFT)
+                                       .allow(ClickType.DROP)
+                                       .allow(ClickType.RIGHT)
+                                       .build();
+
+        screen.getSlot(22).setClickOptions(cli);
+        screen.getSlot(22).setClickHandler((player, click) -> {
+            if(click.isAddingItem()) {
+
+                //Player put item in empty box.
+                ItemStack addingItem = click.getAddingItem();
+                Material m = addingItem.getType();
+                Integer amount = addingItem.getAmount();
+            }
+            player.sendMessage(click.getAction().toString());
+        });
+
 
         this.show(screen, this.p);
     }
