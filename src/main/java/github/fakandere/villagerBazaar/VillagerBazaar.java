@@ -1,6 +1,5 @@
 package github.fakandere.villagerBazaar;
 
-import com.google.inject.Inject;
 import github.fakandere.villagerBazaar.models.Bazaar;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Material;
@@ -14,7 +13,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.ipvp.canvas.Menu;
 import org.ipvp.canvas.type.ChestMenu;
 
-import java.util.ArrayList;
 import java.util.stream.IntStream;
 
 enum VillagerBazaarStage {

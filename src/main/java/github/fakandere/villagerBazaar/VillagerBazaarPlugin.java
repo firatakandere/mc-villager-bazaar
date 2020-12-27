@@ -2,6 +2,7 @@ package github.fakandere.villagerBazaar;
 
 import com.google.inject.Injector;
 import com.google.inject.Inject;
+import github.fakandere.villagerBazaar.commands.CreateAdminCommand;
 import github.fakandere.villagerBazaar.commands.CreateCommand;
 import github.fakandere.villagerBazaar.listeners.VillagerInteractionListener;
 import github.fakandere.villagerBazaar.models.Bazaar;
@@ -20,6 +21,9 @@ public class VillagerBazaarPlugin extends JavaPlugin {
     
     @Inject
     CreateCommand createCommand;
+
+    @Inject
+    CreateAdminCommand createAdminCommand;
 
     @Override
     public void onEnable() {
@@ -51,6 +55,7 @@ public class VillagerBazaarPlugin extends JavaPlugin {
         getCommand("bazaar").setExecutor(commandOrchestrator);
 
         commandOrchestrator.addCommand("create", createCommand, "villagerbazaar.create");
+        commandOrchestrator.addCommand("createadmin", createAdminCommand, "villagerbazaar.createadmin");
     }
 
     private void registerConfigurationSerializations() {

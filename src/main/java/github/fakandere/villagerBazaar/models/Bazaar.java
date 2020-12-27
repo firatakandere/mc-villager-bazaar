@@ -56,6 +56,14 @@ public class Bazaar implements ConfigurationSerializable {
         return villagerUniqueId;
     }
 
+    public Map<Material, Integer> getStocks() {
+        return stocks;
+    }
+
+    public List<BazaarItem> getItems() {
+        return items;
+    }
+
     public void setPlayerUniqueId(UUID playerUniqueId) {
         if (bazaarType == BazaarType.ADMIN) {
             Bukkit.getLogger().warning("Admin bazaar cannot have an owner.");
