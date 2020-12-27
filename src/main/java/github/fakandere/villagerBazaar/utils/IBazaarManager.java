@@ -20,7 +20,7 @@ public interface IBazaarManager {
     void makePurchase(BazaarItem bazaarItem, Player player, int quantity) throws InsufficientFundsException, TransactionFailureException, UnexpectedException;
     void addStock(Bazaar bazaar, Material material, int amount) throws InvalidInputException, UnexpectedException, NotFoundException;
     void removeStock(Bazaar bazaar, Material material, int amount) throws InvalidInputException, UnexpectedException, NotFoundException;
-    void addItem(Bazaar bazaar, Material material, double sellPrice, double buyPrice) throws  InvalidInputException, UnexpectedException, NotFoundException;
+    void addItem(Bazaar bazaar, Material material, double sellPrice, double buyPrice, int amount) throws  InvalidInputException, UnexpectedException, NotFoundException;
     void removeItem(Bazaar bazaar, BazaarItem item) throws UnexpectedException, NotFoundException;
 
 }

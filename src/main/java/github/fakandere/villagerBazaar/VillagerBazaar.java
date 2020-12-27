@@ -100,12 +100,14 @@ public class VillagerBazaar {
                 ItemStack displayItem = new ItemStack(item.getMaterial(), 1);
                 ItemMeta itemMeta = displayItem.getItemMeta();
 
-                int stocks = bazaar.getStocks().getOrDefault(item.getMaterial(), 0);
+                int stocks = bazaar.getStocks().getOrDefault(item.getMaterial(),0);
 
 
-                itemMeta.setLore(Arrays.asList(ChatColor.RED + "Sell: " + item.getSellPrice(),
-                        ChatColor.AQUA + "Buy:" + item.getBuyPrice(),
-                        ChatColor.DARK_GREEN + "Stock: " + stocks));
+                itemMeta.setLore(Arrays.asList(
+                        ChatColor.RED + "Sell: " + item.getSellPrice(),
+                        ChatColor.AQUA +"Buy:" + item.getBuyPrice(),
+                        ChatColor.DARK_GREEN + "Stock: " + stocks)
+                );
 
                 displayItem.setItemMeta(itemMeta);
                 screen.getSlot(index).setItem(displayItem);
@@ -297,22 +299,20 @@ public class VillagerBazaar {
 
                     AnvilGUIHelper.prompt(player, "Selling Price", "1.00", (sellPriceStr) -> {
                         double sellingPrice = Double.parseDouble(sellPriceStr);
-
-                            double buyingPrice = Double.parseDouble("1.00");
-                            try {
-                                this.bazaarManager
-                                        .addItem(this.bazaar, m, sellingPrice, buyingPrice);
-                            } catch (InvalidInputException invalidInputException) {
-                                player.sendMessage("invalidInputException");
-                                screen.close(player);
-                            } catch (UnexpectedException unexpectedException) {
-                                player.sendMessage("unexpectedException");
-                                screen.close(player);
-                            } catch (NotFoundException notFoundException) {
-                                player.sendMessage("notFoundException");
-                                screen.close(player);
-                            }
-
+                        double buyingPrice = Double.parseDouble("1.00");
+                        try {
+                            this.bazaarManager
+                                    .addItem(this.bazaar, m, sellingPrice, buyingPrice, amount);
+                        } catch (InvalidInputException invalidInputException) {
+                            player.sendMessage("invalidInputException");
+                            screen.close(player);
+                        } catch (UnexpectedException unexpectedException) {
+                            player.sendMessage("unexpectedException");
+                            screen.close(player);
+                        } catch (NotFoundException notFoundException) {
+                            player.sendMessage("notFoundException");
+                            screen.close(player);
+                        }
 
 
                     });

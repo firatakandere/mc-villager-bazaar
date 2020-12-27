@@ -10,6 +10,7 @@ import github.fakandere.villagerBazaar.utils.BazaarManager;
 import github.fakandere.villagerBazaar.utils.IBazaarManager;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
+import org.bukkit.conversations.ConversationFactory;
 
 public class BinderModule extends AbstractModule {
     private final VillagerBazaarPlugin plugin;
