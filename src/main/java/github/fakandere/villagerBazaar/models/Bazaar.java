@@ -78,6 +78,10 @@ public class Bazaar implements ConfigurationSerializable {
     }
 
     public void addStock(Material material, int amount) throws InvalidInputException {
+        if (bazaarType == BazaarType.ADMIN) {
+            return; // Ignore
+        }
+
         if (amount < 0) {
             throw new InvalidInputException("A positive amount is expected.");
         }
@@ -90,6 +94,10 @@ public class Bazaar implements ConfigurationSerializable {
     }
 
     public void removeStock(Material material, int amount) throws InvalidInputException {
+        if (bazaarType == BazaarType.ADMIN) {
+            return; // Ignore
+        }
+
         if (amount < 0) {
             throw new InvalidInputException("A positive amount is expected.");
         }
@@ -99,13 +107,13 @@ public class Bazaar implements ConfigurationSerializable {
         }
     }
 
-    public void setItems(List<BazaarItem> items) {
-        this.items = items;
-    }
-
     public void addItem(BazaarItem item) {
         item.setBazaar(this);
         items.add(item);
+    }
+
+    public void removeItem(BazaarItem item) {
+        items.remove(item);
     }
 
     public void setVillagerUniqueId(UUID villagerUniqueId) {

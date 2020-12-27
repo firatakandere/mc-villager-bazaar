@@ -20,8 +20,7 @@ public class BazaarItem implements ConfigurationSerializable {
     private static final String SELL_PRICE = "SELL_PRICE";
     private static final String BUY_PRICE = "BUY_PRICE";
 
-    public BazaarItem(Bazaar bazaar, Material material, int amount, double sellPrice, double buyPrice) throws InvalidInputException {
-        setBazaar(bazaar);
+    public BazaarItem(Material material, int amount, double sellPrice, double buyPrice) throws InvalidInputException {
         setMaterial(material);
         setAmount(amount);
         setSellPrice(sellPrice);

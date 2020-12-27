@@ -2,6 +2,7 @@ package github.fakandere.villagerBazaar.utils;
 
 import github.fakandere.villagerBazaar.exceptions.InsufficientFundsException;
 import github.fakandere.villagerBazaar.exceptions.InvalidInputException;
+import github.fakandere.villagerBazaar.exceptions.NotFoundException;
 import github.fakandere.villagerBazaar.exceptions.TransactionFailureException;
 import github.fakandere.villagerBazaar.models.Bazaar;
 import github.fakandere.villagerBazaar.models.BazaarItem;
@@ -21,23 +22,26 @@ import java.util.UUID;
 public class BazaarManager implements IBazaarManager {
 
     private Map<UUID, Bazaar> bazaars;
-    private IBazaarRepository bazaarRepository;
+
+    Economy econ;
+    IBazaarRepository bazaarRepository;
 
     @Inject
-    Economy econ;
-
-    public BazaarManager() {
+    public BazaarManager(Economy econ, IBazaarRepository bazaarRepository) {
+        this.econ = econ;
+        this.bazaarRepository = bazaarRepository;
         // load models
-        bazaars = bazaarRepository.getBazaarMap();
+        bazaars = this.bazaarRepository.getBazaarMap();
     }
 
     public Bazaar getBazaar(UUID villagerUniqueId) {
         return bazaars.getOrDefault(villagerUniqueId, null);
     }
 
-    public void deleteBazaar(UUID villagerUniqueId) {
+    public void deleteBazaar(UUID villagerUniqueId) throws NotFoundException {
         bazaarRepository.deleteBazaar(villagerUniqueId);
         // @todo delete villager here or somewhere else?
+        // @todo return stocks back to player or drop to the floor?
         bazaars.remove(villagerUniqueId);
     }
 
@@ -58,7 +62,7 @@ public class BazaarManager implements IBazaarManager {
         bazaars.put(villagerUniqueId, bazaar);
     }
 
-    public void makePurchase(BazaarItem bazaarItem, Player player, int quantity) throws InsufficientFundsException, TransactionFailureException, InvalidInputException, UnexpectedException {
+    public void makePurchase(BazaarItem bazaarItem, Player player, int quantity) throws InsufficientFundsException, TransactionFailureException, UnexpectedException {
         Bazaar bazaar = bazaarItem.getBazaar();
         OfflinePlayer bazaarOwner = null;
 
@@ -70,6 +74,7 @@ public class BazaarManager implements IBazaarManager {
             double totalPrice = bazaarItem.getBuyPrice() * quantity;
 
             // @todo maybe check if bazaar has enough quantity, idk
+            // @todo need to check if buyer has enough spots?
 
             if (!econ.has(player, totalPrice)) {
                 throw new InsufficientFundsException();
@@ -79,25 +84,48 @@ public class BazaarManager implements IBazaarManager {
                 throw new TransactionFailureException();
             }
 
-            if (bazaarOwner != null) {
+            if (bazaar.getBazaarType() == BazaarType.PLAYER) {
                 econ.depositPlayer(bazaarOwner, totalPrice);
-            }
 
-            bazaar.removeStock(bazaarItem.getMaterial(), quantity * bazaarItem.getAmount());
-            bazaarRepository.updateBazaar(bazaar);
+                try {
+                    bazaar.removeStock(bazaarItem.getMaterial(), quantity * bazaarItem.getAmount());
+                    bazaarRepository.updateBazaar(bazaar);
+                } catch (InvalidInputException | UnexpectedException | NotFoundException ex) {
+                    throw new UnexpectedException(ex.getMessage());
+                }
+            }
         }
     }
 
-    public void addStock(Bazaar bazaar, Material material, int amount) throws InvalidInputException, UnexpectedException {
+    public void addStock(Bazaar bazaar, Material material, int amount) throws InvalidInputException, UnexpectedException, NotFoundException {
+        // @todo where to update user inventory?
+
         synchronized (bazaar) {
             bazaar.addStock(material, amount);
             bazaarRepository.updateBazaar(bazaar);
         }
     }
 
-    public void removeStock(Bazaar bazaar, Material material, int amount) throws InvalidInputException, UnexpectedException {
+    public void removeStock(Bazaar bazaar, Material material, int amount) throws InvalidInputException, UnexpectedException, NotFoundException {
+        // @todo where to update user inventory?
+        // @todo check if it exceeds current stock?
+
         synchronized (bazaar) {
             bazaar.removeStock(material,amount);
+            bazaarRepository.updateBazaar(bazaar);
+        }
+    }
+
+    public void addItem(Bazaar bazaar, Material material, int amount, double sellPrice, double buyPrice) throws InvalidInputException, UnexpectedException, NotFoundException {
+        synchronized (bazaar) {
+            bazaar.addItem(new BazaarItem(material, amount, sellPrice, buyPrice));
+            bazaarRepository.updateBazaar(bazaar);
+        }
+    }
+
+    public void removeItem(Bazaar bazaar, BazaarItem item) throws UnexpectedException, NotFoundException {
+        synchronized (bazaar) {
+            bazaar.removeItem(item);
             bazaarRepository.updateBazaar(bazaar);
         }
     }

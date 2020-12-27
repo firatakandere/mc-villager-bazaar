@@ -1,5 +1,6 @@
 package github.fakandere.villagerBazaar.repositories;
 
+import github.fakandere.villagerBazaar.exceptions.NotFoundException;
 import github.fakandere.villagerBazaar.models.Bazaar;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -16,6 +17,8 @@ import java.util.logging.Level;
 public class FileRepository implements IBazaarRepository {
 
     private final String path = "plugins/VillagerBazaar/Bazaars";
+
+    private final String CONFIG_PATH = "BAZAAR";
 
     public FileRepository() {
         new File(path).mkdirs();
@@ -34,7 +37,7 @@ public class FileRepository implements IBazaarRepository {
 
         for (File bazaarFile : bazaarFiles) {
             YamlConfiguration yml = YamlConfiguration.loadConfiguration(bazaarFile);
-            Bazaar bazaar = yml.getObject("BAZAAR", Bazaar.class);
+            Bazaar bazaar = yml.getObject(CONFIG_PATH, Bazaar.class);
             bazaarMap.put(bazaar.getVillagerUniqueId(), bazaar);
         }
 
@@ -47,7 +50,7 @@ public class FileRepository implements IBazaarRepository {
         try {
             file.createNewFile();
             YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
-            yml.set("BAZAAR", bazaar);
+            yml.set(CONFIG_PATH, bazaar);
             yml.save(file);
         } catch (IOException ex) {
             Bukkit.getLogger().log(Level.SEVERE, "Could not create file for user registration", ex);
@@ -56,15 +59,15 @@ public class FileRepository implements IBazaarRepository {
     }
 
     @Override
-    public void updateBazaar(Bazaar bazaar) throws UnexpectedException {
+    public void updateBazaar(Bazaar bazaar) throws UnexpectedException, NotFoundException {
         final File file = new File(getBazaarFilePath(bazaar.getVillagerUniqueId()));
 
         if (!file.exists()) {
-            // @todo throw not found exception
+            throw new NotFoundException();
         }
 
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
-        yml.set("BAZAAR", bazaar);
+        yml.set(CONFIG_PATH, bazaar);
         try {
             yml.save(file);
         } catch (IOException ex) {
@@ -74,8 +77,14 @@ public class FileRepository implements IBazaarRepository {
     }
 
     @Override
-    public void deleteBazaar(UUID villagerUniqueId) {
+    public boolean deleteBazaar(UUID villagerUniqueId) throws NotFoundException {
+        final File file = new File(getBazaarFilePath(villagerUniqueId));
 
+        if (!file.exists()) {
+            throw new NotFoundException();
+        }
+
+        return file.delete();
     }
 
     private String getBazaarFilePath(UUID villagerUniqueId) {
