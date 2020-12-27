@@ -8,7 +8,9 @@ import github.fakandere.villagerBazaar.models.BazaarItem;
 import github.fakandere.villagerBazaar.utils.AnvilGUIHelper;
 import github.fakandere.villagerBazaar.utils.BazaarManager;
 import github.fakandere.villagerBazaar.utils.IBazaarManager;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.inventory.ClickType;
@@ -23,6 +25,7 @@ import org.ipvp.canvas.type.ChestMenu;
 
 
 import java.rmi.UnexpectedException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -43,7 +46,8 @@ public class VillagerBazaar {
 
     public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
 
-    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar, IBazaarManager bazaarManager) {
+    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar,
+                          IBazaarManager bazaarManager) {
         this.p = p;
         this.v = v;
         this.e = e;
@@ -91,7 +95,21 @@ public class VillagerBazaar {
             int finalIndex = index;
             if (Arrays.stream(ignore).noneMatch(i -> i == finalIndex)) {
                 BazaarItem item = items.get(0);
-                screen.getSlot(index).setItem(new ItemStack(item.getMaterial()));
+
+                ItemStack displayItem = new ItemStack(item.getMaterial(), 1);
+                ItemMeta itemMeta = displayItem.getItemMeta();
+
+                int stocks = bazaar.getStocks().getOrDefault(item.getMaterial(),0);
+
+
+                itemMeta.setLore(Arrays.asList(
+                        ChatColor.RED + "Sell: " + item.getSellPrice(),
+                        ChatColor.AQUA +"Buy:" + item.getBuyPrice(),
+                        ChatColor.DARK_GREEN + "Stock: " + stocks)
+                );
+
+                displayItem.setItemMeta(itemMeta);
+                screen.getSlot(index).setItem(displayItem);
                 items.remove(0);
 
             }
@@ -144,7 +162,7 @@ public class VillagerBazaar {
         this.stage = VillagerBazaarStage.SELL;
         Menu screen = createMenu();
 
-        List<BazaarItem> items = this.bazaar.getItems();
+        List<BazaarItem> items = new ArrayList<>(this.bazaar.getItems());
 
         this.distributeItems(screen, items);
 
