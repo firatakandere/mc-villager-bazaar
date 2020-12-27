@@ -13,8 +13,9 @@ public class AnvilGUIHelper {
     public static void prompt(Player p, String title, String text, Consumer<String> onComplete) {
         new AnvilGUI.Builder()
                 .onComplete((player, tx) -> {                             //called when the inventory output slot is clicked
+                    AnvilGUI.Response response = AnvilGUI.Response.close();
                     onComplete.accept(tx);
-                    return AnvilGUI.Response.close();
+                    return response;
                 })
                 .preventClose()                                             //prevents the inventory from being closed
                 .text(text)                      //sets the text the GUI should start with
