@@ -2,10 +2,7 @@ package github.fakandere.villagerBazaar;
 
 import com.google.inject.Inject;
 import net.wesjd.anvilgui.AnvilGUI;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -16,9 +13,6 @@ import org.ipvp.canvas.Menu;
 import org.ipvp.canvas.type.ChestMenu;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 enum VillagerBazaarStage {
@@ -26,29 +20,6 @@ enum VillagerBazaarStage {
     EDIT,
     CUSTOMIZE,
     ITEMEDIT,
-}
-
-class VillagerBazaarItem {
-
-    private Random rand = new Random();
-
-    public VillagerBazaarItem() {
-        Material[] ms = new Material[]{
-                Material.GOLD_BLOCK,
-                Material.DIAMOND_BLOCK,
-                Material.NETHERITE_BLOCK,
-                Material.REDSTONE_BLOCK,
-                Material.IRON_BLOCK
-        };
-
-        this.material = ms[rand.nextInt(ms.length)];
-
-    }
-
-    Material material = Material.GOLD_BLOCK;
-    Double sellPrice = 10.0;
-    Double buyPrice = 5.0;
-    Integer amount = 1;
 }
 
 public class VillagerBazaar {
@@ -98,7 +69,7 @@ public class VillagerBazaar {
 
     public void glassBorder(Menu screen) {
         //Glass Decorations
-        ItemStack glass = this.getIcon(Material.WHITE_STAINED_GLASS_PANE, " ");
+        ItemStack glass = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
 
         IntStream.range(0, 10).forEach(
                 n -> {
@@ -118,22 +89,6 @@ public class VillagerBazaar {
         );
     }
 
-    public void distributeItems(Menu screen, ArrayList<VillagerBazaarItem> items) {
-        int[] ignore = new int[]{17, 18, 26, 27};
-        int index = 10;
-        while (items.size() > 0) {
-
-            int finalIndex = index;
-            if (Arrays.stream(ignore).noneMatch(i -> i == finalIndex)) {
-                VillagerBazaarItem item = items.get(0);
-                screen.getSlot(index).setItem(new ItemStack(item.material));
-                items.remove(0);
-
-            }
-            index++;
-        }
-    }
-
     public void show(Menu screen, Player p) {
 
         this.glassBorder(screen);
@@ -146,8 +101,7 @@ public class VillagerBazaar {
                 screen.getSlot(43).setClickHandler((player, info) -> {
                     screen.close(p);
                     this.editScreen();
-                });
-                ;
+                });                ;
                 screen.getSlot(43).setItem(this.getIcon(Material.LEGACY_BOOK_AND_QUILL, "Customize"));
             } else {
                 //Return Start Screen
@@ -177,26 +131,6 @@ public class VillagerBazaar {
     public void startBazaar() {
         this.stage = VillagerBazaarStage.SELL;
         Menu screen = createMenu();
-
-        //create fake BAZAAR
-
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-        this.items.add(new VillagerBazaarItem());
-
-        this.distributeItems(screen, this.items);
-
-
         this.show(screen, this.p);
     }
 
@@ -221,10 +155,10 @@ public class VillagerBazaar {
                     .preventClose()
                     .text(this.v.getCustomName())
                     .title("Shop Name")
-                    .plugin(villagerBazaarPlugin)
+                    .plugin(plugin)
                     .open(p);
         });
-        screen.getSlot(11).setItem(this.getIcon(Material.NAME_TAG, "Change Name"));
+        screen.getSlot(11).setItem(this.getIcon(Material.NAME_TAG, "Change Type"));
         //#endregion
 
         this.show(screen, this.p);

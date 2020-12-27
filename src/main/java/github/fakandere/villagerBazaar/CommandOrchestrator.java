@@ -1,6 +1,7 @@
 package github.fakandere.villagerBazaar;
 
 import net.milkbowl.vault.permission.Permission;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -31,20 +32,22 @@ public class CommandOrchestrator implements ICommandOrchestrator {
             return false; // ignore
         }
 
+        Player player = (Player) commandSender;
+
         if (args.length == 0) {
-            // @todo return help
+            player.sendMessage(ChatColor.RED + "Invalid usage.");
             return false;
         }
 
         if (!bazaarCommands.containsKey(args[0])) {
-            // @todo command not found, return help
+            player.sendMessage(ChatColor.RED  + "Command not found.");
             return false;
         }
 
         final BazaarCommand bazaarCommand = bazaarCommands.get(args[0]);
 
         if (!perm.has(commandSender, bazaarCommand.permission)) {
-            // @todo return no permission
+            player.sendMessage(ChatColor.RED + "You don't have permission to run this command.");
             return false;
         }
 

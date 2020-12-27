@@ -2,6 +2,9 @@ package github.fakandere.villagerBazaar.listeners;
 
 import com.google.inject.Inject;
 import github.fakandere.villagerBazaar.VillagerBazaar;
+import github.fakandere.villagerBazaar.VillagerBazaarPlugin;
+import github.fakandere.villagerBazaar.models.Bazaar;
+import github.fakandere.villagerBazaar.utils.BazaarManager;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
@@ -9,9 +12,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
-
-
-public class VillagerBazaarInteractionListener implements Listener{
+public class VillagerInteractionListener implements Listener{
 
     @Inject
     VillagerBazaar vb;
