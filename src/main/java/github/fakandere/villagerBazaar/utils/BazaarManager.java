@@ -21,7 +21,7 @@ import java.util.UUID;
 
 public class BazaarManager implements IBazaarManager {
 
-    private Map<UUID, Bazaar> bazaars;
+    private final Map<UUID, Bazaar> bazaars;
 
     Economy econ;
     IBazaarRepository bazaarRepository;
@@ -129,9 +129,4 @@ public class BazaarManager implements IBazaarManager {
             bazaarRepository.updateBazaar(bazaar);
         }
     }
-
-
-
-
-
 }
