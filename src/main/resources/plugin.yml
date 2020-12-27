@@ -2,6 +2,7 @@ name: VillagerBazaar
 version: 0.1
 main: github.fakandere.villagerBazaar.VillagerBazaarPlugin
 depend: [Vault]
+api-version: 1.16
 commands:
   bazaar:
     description: Clears your own or a player's inventory.
