@@ -7,3 +7,4 @@ commands:
     description: Clears your own or a player's inventory.
     usage: |
       /bazaar Command
+api-version: 1.16
