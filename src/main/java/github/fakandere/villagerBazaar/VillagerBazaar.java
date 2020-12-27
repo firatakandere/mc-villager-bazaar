@@ -301,7 +301,7 @@ public class VillagerBazaar {
                         double buyingPrice = Double.parseDouble("1.00");
                         try {
                             this.bazaarManager
-                                    .addItem(this.bazaar, m, amount, sellingPrice, buyingPrice);
+                                    .addItem(this.bazaar, m, sellingPrice, buyingPrice);
                         } catch (InvalidInputException invalidInputException) {
                             player.sendMessage("invalidInputException");
                             screen.close(player);

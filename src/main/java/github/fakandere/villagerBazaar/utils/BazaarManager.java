@@ -88,7 +88,7 @@ public class BazaarManager implements IBazaarManager {
                 econ.depositPlayer(bazaarOwner, totalPrice);
 
                 try {
-                    bazaar.removeStock(bazaarItem.getMaterial(), quantity * bazaarItem.getAmount());
+                    bazaar.removeStock(bazaarItem.getMaterial(), quantity);
                     bazaarRepository.updateBazaar(bazaar);
                 } catch (InvalidInputException | UnexpectedException | NotFoundException ex) {
                     throw new UnexpectedException(ex.getMessage());
@@ -116,9 +116,9 @@ public class BazaarManager implements IBazaarManager {
         }
     }
 
-    public void addItem(Bazaar bazaar, Material material, int amount, double sellPrice, double buyPrice) throws InvalidInputException, UnexpectedException, NotFoundException {
+    public void addItem(Bazaar bazaar, Material material, double sellPrice, double buyPrice) throws UnexpectedException, NotFoundException, InvalidInputException {
         synchronized (bazaar) {
-            bazaar.addItem(new BazaarItem(material, amount, sellPrice, buyPrice));
+            bazaar.addItem(new BazaarItem(material, sellPrice, buyPrice));
             bazaarRepository.updateBazaar(bazaar);
         }
     }
