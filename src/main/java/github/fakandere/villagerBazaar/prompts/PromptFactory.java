@@ -1,8 +1,6 @@
 package github.fakandere.villagerBazaar.prompts;
 
-import org.bukkit.conversations.Conversation;
-import org.bukkit.conversations.ConversationFactory;
-import org.bukkit.conversations.ExactMatchConversationCanceller;
+import org.bukkit.conversations.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -14,6 +12,7 @@ public class PromptFactory {
 
     private Player player;
     private Consumer<Map<Object, Object>> onComplete;
+    private Runnable onCancel;
     private Conversation conversation;
     private final ConversationFactory conversationFactory;
 
@@ -25,6 +24,18 @@ public class PromptFactory {
         }
 
         conversationFactory = new ConversationFactory(plugin);
+
+        conversationFactory.addConversationAbandonedListener(conversationAbandonedEvent -> {
+            if (conversationAbandonedEvent.gracefulExit()) {
+                if (onComplete != null) {
+                    onComplete.accept(conversationAbandonedEvent.getContext().getAllSessionData());
+                }
+            } else {
+                if (onCancel != null) {
+                    onCancel.run();
+                }
+            }
+        });
     }
 
     public PromptFactory player(Player player) {
@@ -50,10 +61,12 @@ public class PromptFactory {
     }
 
     public PromptFactory onComplete(Consumer<Map<Object, Object>> onComplete) {
-        this.onComplete = (Map<Object, Object> map) -> {
-            conversation.abandon();
-            onComplete.accept(map);
-        };
+        this.onComplete = onComplete;
+        return this;
+    }
+
+    public PromptFactory onCancel(Runnable onCancel) {
+        this.onCancel = onCancel;
         return this;
     }
 

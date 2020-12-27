@@ -324,6 +324,7 @@ public class VillagerBazaar {
                                 screen.close(player);
                             }
                         })
+                        .onCancel(() -> p.sendMessage("The prompt has been cancelled"))
                         .withTimeout(30)
                         .withCancellationToken("cancel")
                         .build()
