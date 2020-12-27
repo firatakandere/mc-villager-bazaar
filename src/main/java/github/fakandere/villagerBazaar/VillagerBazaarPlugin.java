@@ -3,12 +3,16 @@ package github.fakandere.villagerBazaar;
 import com.google.inject.Injector;
 import com.google.inject.Inject;
 import github.fakandere.villagerBazaar.listeners.VillagerInteractionListener;
+import github.fakandere.villagerBazaar.models.Bazaar;
+import github.fakandere.villagerBazaar.models.BazaarItem;
+import github.fakandere.villagerBazaar.repositories.IBazaarRepository;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
@@ -29,6 +33,9 @@ public class VillagerBazaarPlugin extends JavaPlugin {
     @Inject
     ICommandOrchestrator commandOrchestrator;
 
+    @Inject
+    IBazaarRepository bazaarRepository;
+
     @Override
     public void onEnable() {
         //Check Vault's existence
@@ -43,6 +50,7 @@ public class VillagerBazaarPlugin extends JavaPlugin {
         injector.injectMembers(this);
 
         //getCommand("bazaar").setExecutor(this.commandOrchestrator);
+        registerConfigurationSerializations();
         registerCommands();
         getLogger().info("VillagerBazaar plugin is enabled.");
         Bukkit.getPluginManager().registerEvents(this.villagerInteractionListener, this);
@@ -58,6 +66,11 @@ public class VillagerBazaarPlugin extends JavaPlugin {
 
     private void registerCommands() {
         // this.commandOrchestrator.addCommand("create", new CreateCommand(), "villagerbazaar.create");
+    }
+
+    private void registerConfigurationSerializations() {
+        ConfigurationSerialization.registerClass(Bazaar.class);
+        ConfigurationSerialization.registerClass(BazaarItem.class);
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
