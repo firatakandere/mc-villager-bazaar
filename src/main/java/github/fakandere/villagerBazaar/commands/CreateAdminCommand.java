@@ -1,6 +1,5 @@
 package github.fakandere.villagerBazaar.commands;
 
-import github.fakandere.villagerBazaar.VillagerBazaarPlugin;
 import github.fakandere.villagerBazaar.utils.AnvilGUIHelper;
 import github.fakandere.villagerBazaar.utils.IBazaarManager;
 import org.bukkit.Location;
@@ -15,11 +14,11 @@ import javax.inject.Inject;
 import java.rmi.UnexpectedException;
 import java.util.UUID;
 
-public class CreateCommand implements CommandExecutor {
+public class CreateAdminCommand implements CommandExecutor {
     IBazaarManager bazaarManager;
 
     @Inject
-    public CreateCommand(IBazaarManager bazaarManager) {
+    public CreateAdminCommand(IBazaarManager bazaarManager) {
         this.bazaarManager = bazaarManager;
     }
 
@@ -28,7 +27,7 @@ public class CreateCommand implements CommandExecutor {
         Player p = (Player) commandSender;
         UUID villagerID = this.createVillager(p);
         try {
-            bazaarManager.createPlayerBazaar(villagerID, p.getUniqueId());
+            bazaarManager.createAdminBazaar(villagerID);
         } catch (UnexpectedException e) {
             p.sendMessage("An unexpected error occurred during bazaar creation, please contact with server admin.");
         }

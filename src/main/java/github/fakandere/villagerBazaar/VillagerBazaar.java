@@ -1,10 +1,14 @@
 package github.fakandere.villagerBazaar;
 
+import github.fakandere.villagerBazaar.exceptions.InvalidInputException;
+import github.fakandere.villagerBazaar.exceptions.NotFoundException;
+import github.fakandere.villagerBazaar.models.Bazaar;
 import com.google.inject.Inject;
-import net.wesjd.anvilgui.AnvilGUI;
-import org.bukkit.Location;
+import github.fakandere.villagerBazaar.models.BazaarItem;
+import github.fakandere.villagerBazaar.utils.AnvilGUIHelper;
+import github.fakandere.villagerBazaar.utils.BazaarManager;
+import github.fakandere.villagerBazaar.utils.IBazaarManager;
 import org.bukkit.Material;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.inventory.ClickType;
@@ -17,10 +21,10 @@ import org.ipvp.canvas.Menu;
 import org.ipvp.canvas.slot.ClickOptions;
 import org.ipvp.canvas.type.ChestMenu;
 
-import github.fakandere.villagerBazaar.models.Bazaar;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.UUID;
+import java.rmi.UnexpectedException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.IntStream;
 
 enum VillagerBazaarStage {
@@ -32,24 +36,23 @@ public class VillagerBazaar {
     @Inject
     VillagerBazaarPlugin villagerBazaarPlugin;
 
+    @Inject
+    IBazaarManager bazaarManager;
+
     public Player p;
     public Villager v;
     public PlayerInteractEntityEvent e;
     public boolean canEdit = true;
-
     private Bazaar bazaar;
-    private JavaPlugin plugin;
 
 
     public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
 
-    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar,
-                          JavaPlugin plugin) {
+    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar) {
         this.p = p;
         this.v = v;
         this.e = e;
         this.bazaar = bazaar;
-        this.plugin = plugin;
     }
 
     public Menu createMenu() {
@@ -82,6 +85,22 @@ public class VillagerBazaar {
         IntStream.range(35, 45).forEach(n -> {
             screen.getSlot(n).setItem(glass);
         });
+    }
+
+    public void distributeItems(Menu screen, List<BazaarItem> items) {
+        int[] ignore = new int[]{17, 18, 26, 27};
+        int index = 10;
+        while (items.size() > 0) {
+
+            int finalIndex = index;
+            if (Arrays.stream(ignore).noneMatch(i -> i == finalIndex)) {
+                BazaarItem item = items.get(0);
+                screen.getSlot(index).setItem(new ItemStack(item.getMaterial()));
+                items.remove(0);
+
+            }
+            index++;
+        }
     }
 
     public void show(Menu screen, Player p) {
@@ -129,13 +148,8 @@ public class VillagerBazaar {
         this.stage = VillagerBazaarStage.SELL;
         Menu screen = createMenu();
 
-        ClickOptions cli = ClickOptions.ALLOW_ALL;
-        screen.getSlot(0).setClickOptions(cli);
-
-        screen.getSlot(0).setClickHandler(((player, clickInformation) -> {
-            player.sendMessage(clickInformation.getAction().toString());
-        }));
-
+        List<BazaarItem> items = this.bazaar.getItems();
+        this.distributeItems(screen, items);
 
         this.show(screen, this.p);
     }
@@ -143,7 +157,6 @@ public class VillagerBazaar {
     public void editScreen() {
         this.stage = VillagerBazaarStage.EDIT;
         Menu screen = createMenu();
-
 
         //#region Type Changer
         screen.getSlot(10).setClickHandler((player, info) -> {
@@ -154,11 +167,8 @@ public class VillagerBazaar {
 
         //#region Name Changer
         screen.getSlot(11).setClickHandler((player, info) -> {
-            new AnvilGUI.Builder().onComplete((pl, text) -> {
-                v.setCustomName(text.replaceAll("[^a-zA-Z0-9\\s]", ""));
-                return AnvilGUI.Response.close();
-            }).preventClose().text(this.v.getCustomName()).title("Shop Name").plugin(plugin)
-                                  .open(p);
+            AnvilGUIHelper.prompt(p, "Bazaar Name", v.getCustomName(),
+                    (text) -> v.setCustomName(text.replaceAll("[^a-zA-Z0-9\\s]", "")));
         });
         screen.getSlot(11).setItem(this.getIcon(Material.NAME_TAG, "Change Name"));
         //#endregion,
@@ -240,19 +250,56 @@ public class VillagerBazaar {
                                        .allow(InventoryAction.PLACE_SOME)
                                        .allow(InventoryAction.PLACE_ALL)
                                        .allow(InventoryAction.MOVE_TO_OTHER_INVENTORY)
-                                       .allow(ClickType.LEFT)
-                                       .allow(ClickType.DROP)
-                                       .allow(ClickType.RIGHT)
-                                       .build();
+                                       .allow(ClickType.LEFT).allow(ClickType.DROP)
+                                       .allow(ClickType.RIGHT).build();
 
         screen.getSlot(22).setClickOptions(cli);
         screen.getSlot(22).setClickHandler((player, click) -> {
-            if(click.isAddingItem()) {
+            if (click.isAddingItem()) {
 
                 //Player put item in empty box.
                 ItemStack addingItem = click.getAddingItem();
                 Material m = addingItem.getType();
                 Integer amount = addingItem.getAmount();
+
+                boolean isExisting = this.bazaar.itemExists(m);
+
+                if (isExisting) {
+                    try {
+                        bazaarManager.addStock(this.bazaar, m, amount);
+                    } catch (InvalidInputException invalidInputException) {
+                        player.sendMessage("invalidInputException");
+                        screen.close(player);
+                    } catch (UnexpectedException unexpectedException) {
+                        player.sendMessage("unexpectedException");
+                        screen.close(player);
+                    } catch (NotFoundException notFoundException) {
+                        player.sendMessage("notFoundException");
+                        screen.close(player);
+                    }
+                } else {
+
+                    AnvilGUIHelper.prompt(player, "Selling Price", "1.00", (sellPriceStr) -> {
+                        double sellingPrice = Double.parseDouble(sellPriceStr);
+                        double buyingPrice = Double.parseDouble("1.00");
+                        try {
+                            bazaarManager
+                                    .addItem(this.bazaar, m, amount, sellingPrice, buyingPrice);
+                        } catch (InvalidInputException invalidInputException) {
+                            player.sendMessage("invalidInputException");
+                            screen.close(player);
+                        } catch (UnexpectedException unexpectedException) {
+                            player.sendMessage("unexpectedException");
+                            screen.close(player);
+                        } catch (NotFoundException notFoundException) {
+                            player.sendMessage("notFoundException");
+                            screen.close(player);
+                        }
+
+
+                    });
+                }
+
             }
             player.sendMessage(click.getAction().toString());
         });

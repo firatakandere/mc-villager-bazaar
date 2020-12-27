@@ -11,7 +11,7 @@ public class Bazaar implements ConfigurationSerializable {
     private UUID playerUniqueId;
     private BazaarType bazaarType;
     private Map<Material, Integer> stocks = new HashMap<>();
-    private List<BazaarItem> items = new ArrayList<>();
+    private final List<BazaarItem> items = new ArrayList<>();
     private UUID villagerUniqueId;
 
     // Configuration Constants
@@ -54,6 +54,18 @@ public class Bazaar implements ConfigurationSerializable {
 
     public UUID getVillagerUniqueId() {
         return villagerUniqueId;
+    }
+
+    public boolean itemExists(Material material) {
+        return items.stream().anyMatch(bazaarItem -> bazaarItem.getMaterial() == material);
+    }
+
+    public Map<Material, Integer> getStocks() {
+        return stocks;
+    }
+
+    public List<BazaarItem> getItems() {
+        return items;
     }
 
     public void setPlayerUniqueId(UUID playerUniqueId) {

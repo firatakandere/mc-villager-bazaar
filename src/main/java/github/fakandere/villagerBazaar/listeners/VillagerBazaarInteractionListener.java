@@ -2,7 +2,6 @@ package github.fakandere.villagerBazaar.listeners;
 
 import com.google.inject.Inject;
 import github.fakandere.villagerBazaar.VillagerBazaar;
-import github.fakandere.villagerBazaar.VillagerBazaarPlugin;
 import github.fakandere.villagerBazaar.models.Bazaar;
 import github.fakandere.villagerBazaar.utils.IBazaarManager;
 import org.bukkit.entity.Player;
@@ -16,9 +15,6 @@ public class VillagerBazaarInteractionListener implements Listener{
 
     @Inject
     IBazaarManager bazaarManager;
-
-    @Inject
-    VillagerBazaarPlugin plugin;
 
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onPlayerInteractEntity(final PlayerInteractEntityEvent e) {
@@ -34,7 +30,7 @@ public class VillagerBazaarInteractionListener implements Listener{
 
             e.setCancelled(true);
             
-            VillagerBazaar vb = new VillagerBazaar(p, v, e, bazaar, plugin);
+            VillagerBazaar vb = new VillagerBazaar(p, v, e, bazaar);
             vb.startBazaar();
         }
     }

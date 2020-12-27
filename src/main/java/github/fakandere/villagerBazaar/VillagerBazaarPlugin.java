@@ -2,11 +2,13 @@ package github.fakandere.villagerBazaar;
 
 import com.google.inject.Injector;
 import com.google.inject.Inject;
+import github.fakandere.villagerBazaar.commands.CreateAdminCommand;
 import github.fakandere.villagerBazaar.commands.CreateCommand;
 import github.fakandere.villagerBazaar.listeners.VillagerBazaarInteractionListener;
 import github.fakandere.villagerBazaar.models.Bazaar;
 import github.fakandere.villagerBazaar.models.BazaarItem;
 
+import github.fakandere.villagerBazaar.utils.AnvilGUIHelper;
 import org.bukkit.Bukkit;
 
 
@@ -30,6 +32,9 @@ public class VillagerBazaarPlugin extends JavaPlugin {
     @Inject
     CreateCommand createCommand;
 
+    @Inject
+    CreateAdminCommand createAdminCommand;
+
     @Override
     public void onEnable() {
         //Check Vault's existence
@@ -39,6 +44,7 @@ public class VillagerBazaarPlugin extends JavaPlugin {
             return;
         }
 
+        AnvilGUIHelper.setUp(this);
         BinderModule module = new BinderModule(this);
         Injector injector= module.createInjector();
         injector.injectMembers(this);
@@ -60,6 +66,7 @@ public class VillagerBazaarPlugin extends JavaPlugin {
         getCommand("bazaar").setExecutor(commandOrchestrator);
 
         commandOrchestrator.addCommand("create", createCommand, "villagerbazaar.create");
+        commandOrchestrator.addCommand("createadmin", createAdminCommand, "villagerbazaar.createadmin");
     }
 
     private void registerConfigurationSerializations() {
