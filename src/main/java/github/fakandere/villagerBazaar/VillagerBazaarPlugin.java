@@ -18,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.ipvp.canvas.MenuFunctionListener;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -53,6 +54,8 @@ public class VillagerBazaarPlugin extends JavaPlugin {
         registerCommands();
         getLogger().info("VillagerBazaar plugin is enabled.");
         Bukkit.getPluginManager().registerEvents(this.villagerInteractionListener, this);
+
+        Bukkit.getPluginManager().registerEvents(new MenuFunctionListener(), this);
     }
 
     @Override
