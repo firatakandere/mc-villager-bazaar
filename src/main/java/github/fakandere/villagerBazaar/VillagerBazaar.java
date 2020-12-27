@@ -224,7 +224,7 @@ public class VillagerBazaar {
                     .plugin(villagerBazaarPlugin)
                     .open(p);
         });
-        screen.getSlot(11).setItem(this.getIcon(Material.NAME_TAG, "Change Type"));
+        screen.getSlot(11).setItem(this.getIcon(Material.NAME_TAG, "Change Name"));
         //#endregion
 
         this.show(screen, this.p);
@@ -311,8 +311,8 @@ public class VillagerBazaar {
                     return AnvilGUI.Response.close();
                 })
                 .preventClose()
-                .text("Shop?")
-                .title("What is your shop's name")
+                .text(v.getCustomName())
+                .title("Bazaar Name")
                 .plugin(villagerBazaarPlugin)
                 .open(p);
 
