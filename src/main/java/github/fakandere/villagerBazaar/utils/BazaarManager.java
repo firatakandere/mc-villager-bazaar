@@ -116,9 +116,10 @@ public class BazaarManager implements IBazaarManager {
         }
     }
 
-    public void addItem(Bazaar bazaar, Material material, double sellPrice, double buyPrice) throws UnexpectedException, NotFoundException, InvalidInputException {
+    public void addItem(Bazaar bazaar, Material material, double sellPrice, double buyPrice, int amount) throws UnexpectedException, NotFoundException, InvalidInputException {
         synchronized (bazaar) {
             bazaar.addItem(new BazaarItem(material, sellPrice, buyPrice));
+            bazaar.addStock(material, amount);
             bazaarRepository.updateBazaar(bazaar);
         }
     }
