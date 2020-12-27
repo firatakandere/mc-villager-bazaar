@@ -56,6 +56,10 @@ public class Bazaar implements ConfigurationSerializable {
         return villagerUniqueId;
     }
 
+    public boolean itemExists(Material material) {
+        return items.stream().anyMatch(bazaarItem -> bazaarItem.getMaterial() == material);
+    }
+
     public Map<Material, Integer> getStocks() {
         return stocks;
     }
