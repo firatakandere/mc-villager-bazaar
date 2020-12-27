@@ -33,26 +33,22 @@ enum VillagerBazaarStage {
 
 public class VillagerBazaar {
 
-    @Inject
-    VillagerBazaarPlugin villagerBazaarPlugin;
-
-    @Inject
-    IBazaarManager bazaarManager;
-
     public Player p;
     public Villager v;
     public PlayerInteractEntityEvent e;
     public boolean canEdit = true;
     private Bazaar bazaar;
+    private IBazaarManager bazaarManager;
 
 
     public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
 
-    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar) {
+    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar, IBazaarManager bazaarManager) {
         this.p = p;
         this.v = v;
         this.e = e;
         this.bazaar = bazaar;
+        this.bazaarManager = bazaarManager;
     }
 
     public Menu createMenu() {
@@ -149,6 +145,7 @@ public class VillagerBazaar {
         Menu screen = createMenu();
 
         List<BazaarItem> items = this.bazaar.getItems();
+
         this.distributeItems(screen, items);
 
         this.show(screen, this.p);
@@ -262,11 +259,13 @@ public class VillagerBazaar {
                 Material m = addingItem.getType();
                 Integer amount = addingItem.getAmount();
 
+                player.sendMessage(m.toString());
+
                 boolean isExisting = this.bazaar.itemExists(m);
 
                 if (isExisting) {
                     try {
-                        bazaarManager.addStock(this.bazaar, m, amount);
+                        this.bazaarManager.addStock(this.bazaar, m, amount);
                     } catch (InvalidInputException invalidInputException) {
                         player.sendMessage("invalidInputException");
                         screen.close(player);
@@ -283,7 +282,7 @@ public class VillagerBazaar {
                         double sellingPrice = Double.parseDouble(sellPriceStr);
                         double buyingPrice = Double.parseDouble("1.00");
                         try {
-                            bazaarManager
+                            this.bazaarManager
                                     .addItem(this.bazaar, m, amount, sellingPrice, buyingPrice);
                         } catch (InvalidInputException invalidInputException) {
                             player.sendMessage("invalidInputException");
