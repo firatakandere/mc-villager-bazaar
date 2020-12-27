@@ -16,12 +16,10 @@ import java.rmi.UnexpectedException;
 import java.util.UUID;
 
 public class CreateCommand implements CommandExecutor {
-    VillagerBazaarPlugin plugin;
     IBazaarManager bazaarManager;
 
     @Inject
-    public CreateCommand(VillagerBazaarPlugin plugin, IBazaarManager bazaarManager) {
-        this.plugin = plugin;
+    public CreateCommand(IBazaarManager bazaarManager) {
         this.bazaarManager = bazaarManager;
     }
 

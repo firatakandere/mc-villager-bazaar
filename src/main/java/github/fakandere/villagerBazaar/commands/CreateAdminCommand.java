@@ -1,6 +1,5 @@
 package github.fakandere.villagerBazaar.commands;
 
-import github.fakandere.villagerBazaar.VillagerBazaarPlugin;
 import github.fakandere.villagerBazaar.utils.AnvilGUIHelper;
 import github.fakandere.villagerBazaar.utils.IBazaarManager;
 import org.bukkit.Location;
@@ -16,12 +15,10 @@ import java.rmi.UnexpectedException;
 import java.util.UUID;
 
 public class CreateAdminCommand implements CommandExecutor {
-    VillagerBazaarPlugin plugin;
     IBazaarManager bazaarManager;
 
     @Inject
-    public CreateAdminCommand(VillagerBazaarPlugin plugin, IBazaarManager bazaarManager) {
-        this.plugin = plugin;
+    public CreateAdminCommand(IBazaarManager bazaarManager) {
         this.bazaarManager = bazaarManager;
     }
 

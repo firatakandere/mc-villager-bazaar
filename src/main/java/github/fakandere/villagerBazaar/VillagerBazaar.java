@@ -2,6 +2,7 @@ package github.fakandere.villagerBazaar;
 
 import github.fakandere.villagerBazaar.models.Bazaar;
 import com.google.inject.Inject;
+import github.fakandere.villagerBazaar.utils.AnvilGUIHelper;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -36,17 +37,15 @@ public class VillagerBazaar {
     public boolean canEdit = true;
 
     private Bazaar bazaar;
-    private JavaPlugin plugin;
 
 
     public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
 
-    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar, JavaPlugin plugin) {
+    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar) {
         this.p = p;
         this.v = v;
         this.e = e;
         this.bazaar = bazaar;
-        this.plugin = plugin;
     }
 
     public Menu createMenu() {
@@ -145,16 +144,7 @@ public class VillagerBazaar {
 
         //#region Name Changer
         screen.getSlot(11).setClickHandler((player, info) -> {
-            new AnvilGUI.Builder()
-                    .onComplete((pl, text) -> {
-                        v.setCustomName(text.replaceAll("[^a-zA-Z0-9\\s]", ""));
-                        return AnvilGUI.Response.close();
-                    })
-                    .preventClose()
-                    .text(this.v.getCustomName())
-                    .title("Shop Name")
-                    .plugin(plugin)
-                    .open(p);
+            AnvilGUIHelper.prompt(p, "Shop Name", v.getCustomName(), (text) -> v.setCustomName(text.replaceAll("[^a-zA-Z0-9\\s]", "")));
         });
         screen.getSlot(11).setItem(this.getIcon(Material.NAME_TAG, "Change Type"));
         //#endregion

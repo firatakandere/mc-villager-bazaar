@@ -17,9 +17,6 @@ public class VillagerBazaarInteractionListener implements Listener{
     @Inject
     BazaarManager bazaarManager;
 
-    @Inject
-    VillagerBazaarPlugin plugin;
-
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onPlayerInteractEntity(final PlayerInteractEntityEvent e) {
         if (e.getRightClicked() instanceof Villager) {
@@ -34,7 +31,7 @@ public class VillagerBazaarInteractionListener implements Listener{
 
             e.setCancelled(true);
             
-            VillagerBazaar vb = new VillagerBazaar(p, v, e, bazaar, plugin);
+            VillagerBazaar vb = new VillagerBazaar(p, v, e, bazaar);
             vb.startBazaar();
         }
     }
