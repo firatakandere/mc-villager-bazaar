@@ -34,7 +34,7 @@ public class VillagerBazaarInteractionListener implements Listener{
 
             e.setCancelled(true);
 
-            VillagerBazaar vb = new VillagerBazaar(p, v, e, bazaar,bazaarManager, plugin);
+            VillagerBazaar vb = new VillagerBazaar(p, v, bazaar, bazaarManager, plugin);
             vb.startBazaar();
         }
     }

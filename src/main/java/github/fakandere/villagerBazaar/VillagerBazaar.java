@@ -4,6 +4,7 @@ import github.fakandere.villagerBazaar.exceptions.InvalidInputException;
 import github.fakandere.villagerBazaar.exceptions.NotFoundException;
 import github.fakandere.villagerBazaar.models.Bazaar;
 import github.fakandere.villagerBazaar.models.BazaarItem;
+import github.fakandere.villagerBazaar.models.BazaarType;
 import github.fakandere.villagerBazaar.prompts.BNumericPrompt;
 import github.fakandere.villagerBazaar.prompts.BStringPrompt;
 import github.fakandere.villagerBazaar.prompts.PromptFactory;
@@ -14,7 +15,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -25,9 +25,7 @@ import org.ipvp.canvas.type.ChestMenu;
 
 
 import java.rmi.UnexpectedException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.IntStream;
 
 enum VillagerBazaarStage {
@@ -38,20 +36,16 @@ public class VillagerBazaar {
 
     public Player p;
     public Villager v;
-    public PlayerInteractEntityEvent e;
-    public boolean canEdit = true;
     private Bazaar bazaar;
     private IBazaarManager bazaarManager;
     private JavaPlugin plugin;
 
-
     public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
 
-    public VillagerBazaar(Player p, Villager v, PlayerInteractEntityEvent e, Bazaar bazaar,
+    public VillagerBazaar(Player p, Villager v, Bazaar bazaar,
                           IBazaarManager bazaarManager, JavaPlugin plugin) {
         this.p = p;
         this.v = v;
-        this.e = e;
         this.bazaar = bazaar;
         this.bazaarManager = bazaarManager;
         this.plugin = plugin;
@@ -90,13 +84,20 @@ public class VillagerBazaar {
     }
 
     public void distributeItems(Menu screen, List<BazaarItem> items) {
-        int[] ignore = new int[]{17, 18, 26, 27};
-        int index = 10;
-        while (items.size() > 0) {
+        Set<Integer> ignore = new HashSet<Integer>(){{
+            add(17);
+            add(18);
+            add(26);
+            add(27);
+        }};
+        int offset = 10;
+        int index = 0;
 
-            int finalIndex = index;
-            if (Arrays.stream(ignore).noneMatch(i -> i == finalIndex)) {
-                BazaarItem item = items.get(0);
+
+        for (Iterator it = items.iterator(); it.hasNext(); ++index) {
+            int itemIndex = offset + index;
+            if (!ignore.contains(itemIndex)) {
+                BazaarItem item = (BazaarItem) it.next();
 
                 ItemStack displayItem = new ItemStack(item.getMaterial(), 1);
                 ItemMeta itemMeta = displayItem.getItemMeta();
@@ -106,16 +107,14 @@ public class VillagerBazaar {
 
                 itemMeta.setLore(Arrays.asList(
                         ChatColor.RED + "Sell: " + item.getSellPrice(),
-                        ChatColor.AQUA +"Buy:" + item.getBuyPrice(),
+                        ChatColor.AQUA +"Buy: " + item.getBuyPrice(),
                         ChatColor.DARK_GREEN + "Stock: " + stocks)
                 );
 
                 displayItem.setItemMeta(itemMeta);
-                screen.getSlot(index).setItem(displayItem);
+                screen.getSlot(itemIndex).setItem(displayItem);
                 items.remove(0);
-
             }
-            index++;
         }
     }
 
@@ -124,7 +123,7 @@ public class VillagerBazaar {
         this.glassBorder(screen);
 
         //Customize Button
-        if (this.canEdit) {
+        if (this.canEdit()) {
 
             if (this.stage != VillagerBazaarStage.EDIT) {
                 //Open EditScreen
@@ -163,11 +162,8 @@ public class VillagerBazaar {
     public void startBazaar() {
         this.stage = VillagerBazaarStage.SELL;
         Menu screen = createMenu();
-
-        List<BazaarItem> items = new ArrayList<>(this.bazaar.getItems());
-
+        List<BazaarItem> items = this.bazaar.getItems();
         this.distributeItems(screen, items);
-
         this.show(screen, this.p);
     }
 
@@ -225,7 +221,6 @@ public class VillagerBazaar {
             this.v.setVillagerType(Villager.Type.DESERT);
         });
         screen.getSlot(11).setItem(this.getIcon(Material.SAND, "DESERT"));
-        ;
 
         //Jungle Villager
         screen.getSlot(12).setClickHandler((player, info) -> {
@@ -324,7 +319,13 @@ public class VillagerBazaar {
                                 screen.close(player);
                             }
                         })
-                        .onCancel(() -> p.sendMessage("The prompt has been cancelled"))
+                        .onCancel(() -> {
+                            // @todo if player is offline all items are lost
+                            if (player.isOnline()) {
+                                p.getInventory().addItem(new ItemStack(m, amount));
+                            }
+                            p.sendMessage("The prompt has been cancelled");
+                        })
                         .withTimeout(30)
                         .withCancellationToken("cancel")
                         .build()
@@ -342,6 +343,15 @@ public class VillagerBazaar {
     public void stopBazaar(Menu screen, Player player) {
         this.stage = VillagerBazaarStage.SELL;
         screen.close(player);
+    }
+
+    private boolean canEdit() {
+        if (bazaar.getBazaarType() == BazaarType.ADMIN) {
+            return p.isOp(); // @todo add permission to edit admin bazaars
+        }
+        else {
+            return p.isOp() || (bazaar.getPlayerUniqueId() == p.getUniqueId());
+        }
     }
 
 }
