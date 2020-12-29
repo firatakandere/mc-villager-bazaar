@@ -52,10 +52,6 @@ public class BNumericPrompt extends BPrompt {
             }
         }
 
-
-        if (onComplete != null) {
-            onComplete.accept(conversationContext.getAllSessionData());
-        }
         return nextPrompt;
     }
 }

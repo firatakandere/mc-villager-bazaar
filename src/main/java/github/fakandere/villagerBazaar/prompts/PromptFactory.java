@@ -88,7 +88,6 @@ public class PromptFactory {
             throw new IllegalArgumentException("Player is needed.");
         }
 
-        promptList.getLast().setOnComplete(onComplete);
         conversation = conversationFactory.buildConversation(player);
         return conversation;
     }

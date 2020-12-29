@@ -49,7 +49,7 @@ public class FileRepository implements IBazaarRepository {
         final File file = new File(getBazaarFilePath(bazaar.getVillagerUniqueId()));
         try {
             file.createNewFile();
-            YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+            YamlConfiguration yml = new YamlConfiguration();
             yml.set(CONFIG_PATH, bazaar);
             yml.save(file);
         } catch (IOException ex) {
@@ -66,7 +66,7 @@ public class FileRepository implements IBazaarRepository {
             throw new NotFoundException();
         }
 
-        YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration yml = new YamlConfiguration();
         yml.set(CONFIG_PATH, bazaar);
         try {
             yml.save(file);

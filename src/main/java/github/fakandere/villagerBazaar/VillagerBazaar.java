@@ -9,6 +9,7 @@ import github.fakandere.villagerBazaar.prompts.BNumericPrompt;
 import github.fakandere.villagerBazaar.prompts.BStringPrompt;
 import github.fakandere.villagerBazaar.prompts.PromptFactory;
 import github.fakandere.villagerBazaar.utils.IBazaarManager;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -39,16 +40,18 @@ public class VillagerBazaar {
     private Bazaar bazaar;
     private IBazaarManager bazaarManager;
     private JavaPlugin plugin;
+    private Permission perm;
 
     public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
 
     public VillagerBazaar(Player p, Villager v, Bazaar bazaar,
-                          IBazaarManager bazaarManager, JavaPlugin plugin) {
+                          IBazaarManager bazaarManager, JavaPlugin plugin, Permission perm) {
         this.p = p;
         this.v = v;
         this.bazaar = bazaar;
         this.bazaarManager = bazaarManager;
         this.plugin = plugin;
+        this.perm = perm;
     }
 
     public Menu createMenu() {
@@ -113,7 +116,6 @@ public class VillagerBazaar {
 
                 displayItem.setItemMeta(itemMeta);
                 screen.getSlot(itemIndex).setItem(displayItem);
-                items.remove(0);
             }
         }
     }
@@ -133,7 +135,7 @@ public class VillagerBazaar {
                 });
                 ;
                 screen.getSlot(43)
-                      .setItem(this.getIcon(Material.LEGACY_BOOK_AND_QUILL, "Customize"));
+                      .setItem(this.getIcon(Material.BOOK, "Customize"));
             } else {
                 //Return Start Screen
                 screen.getSlot(43).setClickHandler((player, info) -> {
@@ -180,6 +182,9 @@ public class VillagerBazaar {
 
         //#region Name Changer
         screen.getSlot(11).setClickHandler((player, info) -> {
+
+            screen.close(player);
+
             new PromptFactory(plugin)
                 .player(p)
                 .addPrompt(new BStringPrompt("Please type your shop's name to the chat, type `cancel` to cancel"), "villagername")
@@ -347,7 +352,7 @@ public class VillagerBazaar {
 
     private boolean canEdit() {
         if (bazaar.getBazaarType() == BazaarType.ADMIN) {
-            return p.isOp(); // @todo add permission to edit admin bazaars
+            return p.isOp() || perm.has(p, "villagerbazaar.admin.manage"); // @todo add permission to edit admin bazaars
         }
         else {
             return p.isOp() || (bazaar.getPlayerUniqueId() == p.getUniqueId());

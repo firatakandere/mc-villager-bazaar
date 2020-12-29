@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 
 public abstract class BPrompt implements Prompt {
     protected Prompt nextPrompt = null;
-    protected Consumer<Map<Object, Object>> onComplete = null;
     private String promptText;
     protected Object objectKey;
 
@@ -18,10 +17,6 @@ public abstract class BPrompt implements Prompt {
 
     public void setNextPrompt(Prompt prompt) {
         this.nextPrompt = prompt;
-    }
-
-    public void setOnComplete(Consumer<Map<Object, Object>> onComplete) {
-        this.onComplete = onComplete;
     }
 
     public void setObjectKey(Object objectKey) {
@@ -36,10 +31,6 @@ public abstract class BPrompt implements Prompt {
     @Override
     public Prompt acceptInput(ConversationContext conversationContext, String s) {
         conversationContext.setSessionData(objectKey, s);
-
-        if (onComplete != null) {
-            onComplete.accept(conversationContext.getAllSessionData());
-        }
 
         return nextPrompt;
     }

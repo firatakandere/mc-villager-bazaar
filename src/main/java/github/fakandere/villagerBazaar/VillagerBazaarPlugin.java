@@ -59,7 +59,7 @@ public class VillagerBazaarPlugin extends JavaPlugin {
         getCommand("bazaar").setExecutor(commandOrchestrator);
 
         commandOrchestrator.addCommand("create", createCommand, "villagerbazaar.create");
-        commandOrchestrator.addCommand("createadmin", createAdminCommand, "villagerbazaar.createadmin");
+        commandOrchestrator.addCommand("createadmin", createAdminCommand, "villagerbazaar.admin.create");
     }
 
     private void registerConfigurationSerializations() {

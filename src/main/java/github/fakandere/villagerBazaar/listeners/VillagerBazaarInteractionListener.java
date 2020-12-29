@@ -5,6 +5,7 @@ import github.fakandere.villagerBazaar.VillagerBazaar;
 import github.fakandere.villagerBazaar.VillagerBazaarPlugin;
 import github.fakandere.villagerBazaar.models.Bazaar;
 import github.fakandere.villagerBazaar.utils.IBazaarManager;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
@@ -20,6 +21,9 @@ public class VillagerBazaarInteractionListener implements Listener{
     @Inject
     VillagerBazaarPlugin plugin;
 
+    @Inject
+    Permission perm;
+
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onPlayerInteractEntity(final PlayerInteractEntityEvent e) {
         if (e.getRightClicked() instanceof Villager) {
@@ -34,7 +38,7 @@ public class VillagerBazaarInteractionListener implements Listener{
 
             e.setCancelled(true);
 
-            VillagerBazaar vb = new VillagerBazaar(p, v, bazaar, bazaarManager, plugin);
+            VillagerBazaar vb = new VillagerBazaar(p, v, bazaar, bazaarManager, plugin, perm);
             vb.startBazaar();
         }
     }
