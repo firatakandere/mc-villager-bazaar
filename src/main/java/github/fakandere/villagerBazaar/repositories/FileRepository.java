@@ -18,7 +18,10 @@ public class FileRepository implements IBazaarRepository {
 
     private final String path = "plugins/VillagerBazaar/Bazaars";
 
+    private final Integer configRevision = 1;
+
     private final String CONFIG_PATH = "BAZAAR";
+    private final String CONFIG_REV_PATH = "CONFIG_REV";
 
     public FileRepository() {
         new File(path).mkdirs();
@@ -51,6 +54,7 @@ public class FileRepository implements IBazaarRepository {
             file.createNewFile();
             YamlConfiguration yml = new YamlConfiguration();
             yml.set(CONFIG_PATH, bazaar);
+            yml.set(CONFIG_REV_PATH, configRevision);
             yml.save(file);
         } catch (IOException ex) {
             Bukkit.getLogger().log(Level.SEVERE, "Could not create file for user registration", ex);
@@ -68,6 +72,7 @@ public class FileRepository implements IBazaarRepository {
 
         YamlConfiguration yml = new YamlConfiguration();
         yml.set(CONFIG_PATH, bazaar);
+        yml.set(CONFIG_REV_PATH, configRevision);
         try {
             yml.save(file);
         } catch (IOException ex) {
