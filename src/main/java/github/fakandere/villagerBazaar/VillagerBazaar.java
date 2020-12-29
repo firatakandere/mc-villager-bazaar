@@ -54,11 +54,11 @@ public class VillagerBazaar {
         this.perm = perm;
     }
 
-    public Menu createMenu() {
+    private Menu createMenu() {
         return ChestMenu.builder(5).title(this.v.getCustomName()).build();
     }
 
-    public ItemStack getIcon(Material m, String text) {
+    private ItemStack getIcon(Material m, String text) {
         ItemStack iconItem = new ItemStack(m, 1);
         ItemMeta itemMeta = iconItem.getItemMeta();
         itemMeta.setDisplayName(text);
@@ -68,7 +68,7 @@ public class VillagerBazaar {
         return iconItem;
     }
 
-    public void glassBorder(Menu screen) {
+    private void glassBorder(Menu screen) {
         //Glass Decorations
         ItemStack glass = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
 
@@ -86,7 +86,7 @@ public class VillagerBazaar {
         });
     }
 
-    public void distributeItems(Menu screen, List<BazaarItem> items) {
+    private void distributeItems(Menu screen, List<BazaarItem> items) {
         Set<Integer> ignore = new HashSet<Integer>(){{
             add(17);
             add(18);
@@ -120,7 +120,7 @@ public class VillagerBazaar {
         }
     }
 
-    public void show(Menu screen, Player p) {
+    private void show(Menu screen, Player p) {
 
         this.glassBorder(screen);
 
@@ -169,7 +169,7 @@ public class VillagerBazaar {
         this.show(screen, this.p);
     }
 
-    public void editScreen() {
+    private void editScreen() {
         this.stage = VillagerBazaarStage.EDIT;
         Menu screen = createMenu();
 
@@ -210,7 +210,7 @@ public class VillagerBazaar {
         this.show(screen, this.p);
     }
 
-    public void customizeScreen() {
+    private void customizeScreen() {
         this.stage = VillagerBazaarStage.CUSTOMIZE;
         Menu screen = createMenu();
 
@@ -261,7 +261,7 @@ public class VillagerBazaar {
         this.show(screen, this.p);
     }
 
-    public void itemAddScreen() {
+    private void itemAddScreen() {
         this.stage = VillagerBazaarStage.ITEMADD;
         Menu screen = createMenu();
         //FillScreen with Glasses
@@ -345,7 +345,7 @@ public class VillagerBazaar {
         this.show(screen, this.p);
     }
 
-    public void stopBazaar(Menu screen, Player player) {
+    private void stopBazaar(Menu screen, Player player) {
         this.stage = VillagerBazaarStage.SELL;
         screen.close(player);
     }
