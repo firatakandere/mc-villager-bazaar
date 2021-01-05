@@ -104,6 +104,13 @@ public class BazaarManager implements IBazaarManager {
         }
     }
 
+    public void deleteItem(Bazaar bazaar, int index) throws UnexpectedException, NotFoundException {
+        synchronized (bazaar) {
+            bazaar.removeItem(index);
+            bazaarRepository.updateBazaar(bazaar);
+        }
+    }
+
     public void setStock(Bazaar bazaar, int index, ItemStack itemStack) throws UnexpectedException, NotFoundException {
         synchronized (bazaar) {
             bazaar.setStock(index, itemStack);

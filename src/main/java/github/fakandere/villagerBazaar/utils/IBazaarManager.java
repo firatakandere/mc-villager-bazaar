@@ -19,6 +19,7 @@ public interface IBazaarManager {
     void createPlayerBazaar(UUID villagerUniqueId, UUID playerUniqueId) throws UnexpectedException;
     void makePurchase(BazaarItem bazaarItem, Player player, int quantity) throws InsufficientFundsException, TransactionFailureException, UnexpectedException;
     void setItem(Bazaar bazaar, int index, ItemStack itemStack, double sellPrice, double buyPrice) throws UnexpectedException, NotFoundException, InvalidInputException;
+    void deleteItem(Bazaar bazaar, int index) throws UnexpectedException, NotFoundException;
     void setStock(Bazaar bazaar, int index, ItemStack itemStack) throws UnexpectedException, NotFoundException;
 
 }

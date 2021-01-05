@@ -94,8 +94,8 @@ public class Bazaar implements ConfigurationSerializable {
         items.set(index, item);
     }
 
-    public void removeItem(BazaarItem item) {
-        items.remove(item);
+    public void removeItem(int index) {
+        items.set(index, null);
     }
 
     public void setVillagerUniqueId(UUID villagerUniqueId) {

@@ -19,7 +19,6 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.ipvp.canvas.ClickInformation;
 import org.ipvp.canvas.Menu;
 import org.ipvp.canvas.mask.BinaryMask;
 import org.ipvp.canvas.slot.ClickOptions;
@@ -29,7 +28,6 @@ import org.ipvp.canvas.type.ChestMenu;
 import java.rmi.UnexpectedException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class VillagerBazaar {
@@ -62,7 +60,7 @@ public class VillagerBazaar {
         menu.clear();
         applyGlassBorder();
 
-        fillFromBazaar(false);
+        fillItemsFromBazaar(false);
 
         if (canEdit()) {
             addMenuItem(31, Material.ARMOR_STAND, "Change Biome", this::changeVillagerBiome);
@@ -149,7 +147,7 @@ public class VillagerBazaar {
     private void displayEditItemsScreen() {
         menu.clear();
         applyGlassBorder();
-        fillFromBazaar(true);
+        fillItemsFromBazaar(true);
         addMenuItem(34, Material.OAK_DOOR, "Back", this::displayMainScreen);
 
 
@@ -160,8 +158,16 @@ public class VillagerBazaar {
                 setItemPricePrompt(clickInformation.getClickedSlot().getIndex());
             }
             else if (clickInformation.getClickType() == ClickType.LEFT) { // Edit price
+                setItemPricePrompt(clickInformation.getClickedSlot().getIndex());
             }
             else if (clickInformation.getClickType() == ClickType.RIGHT) { // Delete item
+                try {
+                    bazaarManager.deleteItem(bazaar, clickInformation.getClickedSlot().getIndex());
+                } catch (UnexpectedException e) {
+                    e.printStackTrace();
+                } catch (NotFoundException e) {
+                    e.printStackTrace();
+                }
             }
         };
 
@@ -173,6 +179,13 @@ public class VillagerBazaar {
         menu.getSlot(15).setClickHandler(clickHandler);
         menu.getSlot(16).setClickHandler(clickHandler);
         menu.getSlot(17).setClickHandler(clickHandler);
+    }
+
+    private void displayConfirmationScreen(Runnable onConfirm, Runnable onCancel) {
+        menu.clear();
+        applyGlassBorder();
+        addMenuItem(11, Material.GREEN_WOOL, "Confirm", onConfirm);
+        addMenuItem(16, Material.RED_WOOL, "Cancel", onCancel);
     }
 
     private void setItemPricePrompt(int itemSlotIndex) {
@@ -192,7 +205,7 @@ public class VillagerBazaar {
                                 (double)map.getOrDefault("sellingprice", 0),
                                 (double)map.getOrDefault("buyingprice", 0)
                         );
-                        fillFromBazaar(true);
+                        fillItemsFromBazaar(true);
                     } catch (UnexpectedException e) {
                         e.printStackTrace();
                     } catch (NotFoundException e) {
@@ -272,7 +285,7 @@ public class VillagerBazaar {
         }
     }
 
-    private void fillFromBazaar(boolean isEditMode) {
+    private void fillItemsFromBazaar(boolean isEditMode) {
         int slotIndex = 10;
         for (BazaarItem bazaarItem : bazaar.getItems()) {
             if (bazaarItem != null) {
@@ -317,9 +330,9 @@ public class VillagerBazaar {
                 return (int) Math.ceil(currentAmount / 2D);
             case PICKUP_ALL:
             case DROP_ALL_SLOT:
-                return currentAmount;
             case MOVE_TO_OTHER_INVENTORY:
                 return currentAmount;
+                // @todo disallow these two
             case PICKUP_SOME: // Don't know how this is caused
             case SWAP_WITH_CURSOR:
             default:
