@@ -10,9 +10,9 @@ import github.fakandere.villagerBazaar.models.BazaarType;
 import github.fakandere.villagerBazaar.repositories.IBazaarRepository;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import javax.inject.Inject;
 import java.rmi.UnexpectedException;
@@ -87,46 +87,26 @@ public class BazaarManager implements IBazaarManager {
             if (bazaar.getBazaarType() == BazaarType.PLAYER) {
                 econ.depositPlayer(bazaarOwner, totalPrice);
 
-                try {
-                    bazaar.removeStock(bazaarItem.getMaterial(), quantity);
-                    bazaarRepository.updateBazaar(bazaar);
-                } catch (InvalidInputException | UnexpectedException | NotFoundException ex) {
-                    throw new UnexpectedException(ex.getMessage());
-                }
+//                try {
+//                    bazaar.removeStock(bazaarItem.getMaterial(), quantity);
+//                    bazaarRepository.updateBazaar(bazaar);
+//                } catch (InvalidInputException | UnexpectedException | NotFoundException ex) {
+//                    throw new UnexpectedException(ex.getMessage());
+//                }
             }
         }
     }
 
-    public void addStock(Bazaar bazaar, Material material, int amount) throws InvalidInputException, UnexpectedException, NotFoundException {
-        // @todo where to update user inventory?
-
+    public void setItem(Bazaar bazaar, int index, ItemStack itemStack, double sellPrice, double buyPrice) throws UnexpectedException, NotFoundException, InvalidInputException {
         synchronized (bazaar) {
-            bazaar.addStock(material, amount);
+            bazaar.setItem(index, new BazaarItem(itemStack, sellPrice, buyPrice));
             bazaarRepository.updateBazaar(bazaar);
         }
     }
 
-    public void removeStock(Bazaar bazaar, Material material, int amount) throws InvalidInputException, UnexpectedException, NotFoundException {
-        // @todo where to update user inventory?
-        // @todo check if it exceeds current stock?
-
+    public void setStock(Bazaar bazaar, int index, ItemStack itemStack) throws UnexpectedException, NotFoundException {
         synchronized (bazaar) {
-            bazaar.removeStock(material,amount);
-            bazaarRepository.updateBazaar(bazaar);
-        }
-    }
-
-    public void addItem(Bazaar bazaar, Material material, double sellPrice, double buyPrice, int amount) throws UnexpectedException, NotFoundException, InvalidInputException {
-        synchronized (bazaar) {
-            bazaar.addItem(new BazaarItem(material, sellPrice, buyPrice));
-            bazaar.addStock(material, amount);
-            bazaarRepository.updateBazaar(bazaar);
-        }
-    }
-
-    public void removeItem(Bazaar bazaar, BazaarItem item) throws UnexpectedException, NotFoundException {
-        synchronized (bazaar) {
-            bazaar.removeItem(item);
+            bazaar.setStock(index, itemStack);
             bazaarRepository.updateBazaar(bazaar);
         }
     }

@@ -1,17 +1,17 @@
 package github.fakandere.villagerBazaar.models;
 
-import github.fakandere.villagerBazaar.exceptions.InvalidInputException;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Bazaar implements ConfigurationSerializable {
     private UUID playerUniqueId;
     private BazaarType bazaarType;
-    private Map<Material, Integer> stocks = new HashMap<>();
-    private final List<BazaarItem> items = new ArrayList<>();
+    private BazaarInventory stocks = new BazaarInventory();
+    private final List<BazaarItem> items = new ArrayList<>(7);
     private UUID villagerUniqueId;
 
     // Configuration Constants
@@ -21,26 +21,24 @@ public class Bazaar implements ConfigurationSerializable {
     final static private String STOCKS = "STOCKS";
     final static private String ITEMS = "ITEMS";
 
-    public Bazaar() {}
+    public Bazaar() {
+        IntStream.range(0, 7).forEach(i -> items.add(null));
+    }
 
     public Bazaar(Map<String, Object> serialized) { // for deserialization
+        IntStream.range(0, 7).forEach(i -> items.add(null));
+
         setVillagerUniqueId(UUID.fromString((String)serialized.get(VILLAGER_UNIQUE_ID)));
         setBazaarType(BazaarType.valueOf((String)serialized.get(BAZAAR_TYPE)));
         if (serialized.containsKey(PLAYER_UNIQUE_ID)) {
             setPlayerUniqueId(UUID.fromString((String)serialized.get(PLAYER_UNIQUE_ID)));
         }
 
-        for (Map.Entry<String, Integer> stockEntry : ((Map<String,Integer>)serialized.get(STOCKS)).entrySet()) {
-            try {
-                addStock(Material.valueOf(stockEntry.getKey()), stockEntry.getValue());
-            } catch (InvalidInputException e) {
-                e.printStackTrace();
-                // @todo ignore?
-            }
-        }
+        setStocks((BazaarInventory) serialized.get(STOCKS));
 
+        int index = 0;
         for(BazaarItem item: ((List<BazaarItem>)serialized.get(ITEMS))) {
-            addItem(item);
+            setItem(index++, item);
         }
     }
 
@@ -56,11 +54,7 @@ public class Bazaar implements ConfigurationSerializable {
         return villagerUniqueId;
     }
 
-    public boolean itemExists(Material material) {
-        return items.stream().anyMatch(bazaarItem -> bazaarItem.getMaterial() == material);
-    }
-
-    public Map<Material, Integer> getStocks() {
+    public BazaarInventory getStocks() {
         return stocks;
     }
 
@@ -85,43 +79,19 @@ public class Bazaar implements ConfigurationSerializable {
         this.bazaarType = bazaarType;
     }
 
-    public void setStocks(Map<Material, Integer> stocks) {
+    public void setStocks(BazaarInventory stocks) {
         this.stocks = stocks;
     }
 
-    public void addStock(Material material, int amount) throws InvalidInputException {
-        if (bazaarType == BazaarType.ADMIN) {
-            return; // Ignore
-        }
-
-        if (amount < 0) {
-            throw new InvalidInputException("A positive amount is expected.");
-        }
-
-        if (stocks.containsKey(material)) {
-            stocks.put(material, stocks.get(material) + amount);
-        } else {
-            stocks.put(material, amount);
-        }
+    public void setStock(int index, ItemStack itemStack) {
+        this.stocks.set(index, itemStack);
     }
 
-    public void removeStock(Material material, int amount) throws InvalidInputException {
-        if (bazaarType == BazaarType.ADMIN) {
-            return; // Ignore
+    public void setItem(int index, BazaarItem item) {
+        if (item != null) {
+            item.setBazaar(this);
         }
-
-        if (amount < 0) {
-            throw new InvalidInputException("A positive amount is expected.");
-        }
-
-        if (stocks.containsKey(material)) {
-            stocks.put(material, stocks.get(material) - amount);
-        }
-    }
-
-    public void addItem(BazaarItem item) {
-        item.setBazaar(this);
-        items.add(item);
+        items.set(index, item);
     }
 
     public void removeItem(BazaarItem item) {
@@ -135,11 +105,6 @@ public class Bazaar implements ConfigurationSerializable {
     @Override
     public Map<String, Object> serialize() {
 
-        Map<String, Integer> serializedStocks = new HashMap<String, Integer>();
-        for (Map.Entry<Material, Integer> entry : stocks.entrySet()) {
-            serializedStocks.put(entry.getKey().toString(), entry.getValue());
-        }
-
         Map<String, Object> serialized = new HashMap<>();
 
         serialized.put(VILLAGER_UNIQUE_ID, villagerUniqueId.toString());
@@ -149,9 +114,9 @@ public class Bazaar implements ConfigurationSerializable {
         }
 
         serialized.put(BAZAAR_TYPE, bazaarType.toString());
-        serialized.put(STOCKS, serializedStocks);
         serialized.put(ITEMS,  items);
 
+        serialized.put(STOCKS, stocks);
 
         return serialized;
     }

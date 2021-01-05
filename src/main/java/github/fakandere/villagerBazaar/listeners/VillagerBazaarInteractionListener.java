@@ -27,10 +27,10 @@ public class VillagerBazaarInteractionListener implements Listener{
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onPlayerInteractEntity(final PlayerInteractEntityEvent e) {
         if (e.getRightClicked() instanceof Villager) {
-            Player p = e.getPlayer();
-            Villager v = (Villager) e.getRightClicked();
+            Player player = e.getPlayer();
+            Villager villager = (Villager) e.getRightClicked();
 
-            Bazaar bazaar = bazaarManager.getBazaar(v.getUniqueId());
+            Bazaar bazaar = bazaarManager.getBazaar(villager.getUniqueId());
 
             if (bazaar == null) {
                 return;
@@ -38,8 +38,8 @@ public class VillagerBazaarInteractionListener implements Listener{
 
             e.setCancelled(true);
 
-            VillagerBazaar vb = new VillagerBazaar(p, v, bazaar, bazaarManager, plugin, perm);
-            vb.startBazaar();
+            VillagerBazaar villagerBazaar = new VillagerBazaar(player, villager, plugin, bazaarManager, bazaar, perm);
+            villagerBazaar.open();
         }
     }
 }

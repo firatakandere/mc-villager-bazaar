@@ -1,39 +1,37 @@
 package github.fakandere.villagerBazaar.models;
 
 import github.fakandere.villagerBazaar.exceptions.InvalidInputException;
-import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class BazaarItem implements ConfigurationSerializable {
     private Bazaar bazaar;
-    private Material material;
     private double sellPrice;
     private double buyPrice;
+    private ItemStack itemStack;
 
     // Configuration Constants
-    private static final String MATERIAL = "MATERIAL";
+    private static final String ITEM_STACK = "ITEM_STACK";
     private static final String SELL_PRICE = "SELL_PRICE";
     private static final String BUY_PRICE = "BUY_PRICE";
 
-    public BazaarItem(Material material, double sellPrice, double buyPrice) throws InvalidInputException {
-        setMaterial(material);
+    public BazaarItem(ItemStack itemStack, double sellPrice, double buyPrice) throws InvalidInputException {
+        setItemStack(itemStack);
         setSellPrice(sellPrice);
         setBuyPrice(buyPrice);
         setBazaar(bazaar);
     }
 
     public BazaarItem(Map<String, Object> serialized) {
-        material = Material.valueOf((String)serialized.get(MATERIAL));
+        itemStack = (ItemStack) serialized.get(ITEM_STACK);
         sellPrice = (double)serialized.get(SELL_PRICE);
         buyPrice = (double)serialized.get(BUY_PRICE);
     }
 
-    public Material getMaterial() {
-        return material;
-    }
+    public ItemStack getItemStack() { return itemStack; }
 
     public double getSellPrice() {
         return sellPrice;
@@ -47,9 +45,10 @@ public class BazaarItem implements ConfigurationSerializable {
         return bazaar;
     }
 
-    public void setMaterial(Material material) {
-        this.material = material;
+    public void setItemStack(ItemStack itemStack) {
+        this.itemStack = itemStack;
     }
+
 
     public void setSellPrice(double sellPrice) throws InvalidInputException {
         if (sellPrice <= 0.0) {
@@ -75,7 +74,7 @@ public class BazaarItem implements ConfigurationSerializable {
     public Map<String, Object> serialize() {
         Map<String,Object> serialized = new HashMap<>();
 
-        serialized.put(MATERIAL, material.toString());
+        serialized.put(ITEM_STACK, itemStack);
         serialized.put(SELL_PRICE, sellPrice);
         serialized.put(BUY_PRICE, buyPrice);
 

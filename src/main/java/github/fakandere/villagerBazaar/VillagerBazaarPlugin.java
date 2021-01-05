@@ -6,6 +6,7 @@ import github.fakandere.villagerBazaar.commands.CreateAdminCommand;
 import github.fakandere.villagerBazaar.commands.CreateCommand;
 import github.fakandere.villagerBazaar.listeners.VillagerBazaarInteractionListener;
 import github.fakandere.villagerBazaar.models.Bazaar;
+import github.fakandere.villagerBazaar.models.BazaarInventory;
 import github.fakandere.villagerBazaar.models.BazaarItem;
 
 import org.bukkit.Bukkit;
@@ -31,6 +32,8 @@ public class VillagerBazaarPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        registerConfigurationSerializations();
+
         //Check Vault's existence
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
@@ -42,7 +45,6 @@ public class VillagerBazaarPlugin extends JavaPlugin {
         Injector injector= module.createInjector();
         injector.injectMembers(this);
 
-        registerConfigurationSerializations();
         registerCommands();
         getLogger().info("VillagerBazaar plugin is enabled.");
         Bukkit.getPluginManager().registerEvents(this.villagerBazaarInteractionListener, this);
@@ -63,8 +65,9 @@ public class VillagerBazaarPlugin extends JavaPlugin {
     }
 
     private void registerConfigurationSerializations() {
-        ConfigurationSerialization.registerClass(Bazaar.class);
+        ConfigurationSerialization.registerClass(BazaarInventory.class);
         ConfigurationSerialization.registerClass(BazaarItem.class);
+        ConfigurationSerialization.registerClass(Bazaar.class);
     }
 
 }

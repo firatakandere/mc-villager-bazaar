@@ -31,12 +31,7 @@ public class FileRepository implements IBazaarRepository {
     public Map<UUID, Bazaar> getBazaarMap() {
         Map<UUID, Bazaar> bazaarMap = new HashMap<>();
 
-        File [] bazaarFiles = (new File(path)).listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith(".yml");
-            }
-        });
+        File [] bazaarFiles = (new File(path)).listFiles((dir, name) -> name.endsWith(".yml"));
 
         for (File bazaarFile : bazaarFiles) {
             YamlConfiguration yml = YamlConfiguration.loadConfiguration(bazaarFile);

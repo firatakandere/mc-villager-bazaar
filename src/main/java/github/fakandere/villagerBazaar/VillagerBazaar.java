@@ -10,7 +10,6 @@ import github.fakandere.villagerBazaar.prompts.BStringPrompt;
 import github.fakandere.villagerBazaar.prompts.PromptFactory;
 import github.fakandere.villagerBazaar.utils.IBazaarManager;
 import net.milkbowl.vault.permission.Permission;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
@@ -20,42 +19,226 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.ipvp.canvas.ClickInformation;
 import org.ipvp.canvas.Menu;
+import org.ipvp.canvas.mask.BinaryMask;
 import org.ipvp.canvas.slot.ClickOptions;
+import org.ipvp.canvas.slot.Slot;
 import org.ipvp.canvas.type.ChestMenu;
 
-
 import java.rmi.UnexpectedException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-enum VillagerBazaarStage {
-    SELL, EDIT, CUSTOMIZE, ITEMADD, ITEMREMOVE, ITEMEDIT
-}
-
 public class VillagerBazaar {
+    final private Menu menu;
 
-    public Player p;
-    public Villager v;
-    private Bazaar bazaar;
-    private IBazaarManager bazaarManager;
-    private JavaPlugin plugin;
-    private Permission perm;
+    private final Villager villager;
+    private final Bazaar bazaar;
+    private final IBazaarManager bazaarManager;
+    private final JavaPlugin plugin;
+    private final Permission perm;
+    private final Player player;
 
-    public VillagerBazaarStage stage = VillagerBazaarStage.SELL;
-
-    public VillagerBazaar(Player p, Villager v, Bazaar bazaar,
-                          IBazaarManager bazaarManager, JavaPlugin plugin, Permission perm) {
-        this.p = p;
-        this.v = v;
-        this.bazaar = bazaar;
-        this.bazaarManager = bazaarManager;
+    public VillagerBazaar(Player player, Villager villager, JavaPlugin plugin, IBazaarManager bazaarManager, Bazaar bazaar, Permission perm) {
+        this.player = player;
+        this.villager = villager;
         this.plugin = plugin;
+        this.bazaarManager = bazaarManager;
+        this.bazaar = bazaar;
         this.perm = perm;
+
+        menu = ChestMenu.builder(5).title(villager.getCustomName()).build();
     }
 
-    private Menu createMenu() {
-        return ChestMenu.builder(5).title(this.v.getCustomName()).build();
+    public void open() {
+        displayMainScreen();
+        menu.open(player);
+    }
+
+    private void displayMainScreen() {
+        menu.clear();
+        applyGlassBorder();
+
+        fillFromBazaar(false);
+
+        if (canEdit()) {
+            addMenuItem(31, Material.ARMOR_STAND, "Change Biome", this::changeVillagerBiome);
+            addMenuItem(32, Material.BOOK, "Edit Items", this::displayEditItemsScreen);
+            addMenuItem(33, Material.CHEST, "Bazaar Inventory", this::displayEditBazaarInventory);
+            addMenuItem(34, Material.NAME_TAG, "Change Name", this::changeVillagerNamePrompt);
+        }
+    }
+
+    private void displayEditBazaarInventory() {
+        menu.clear();
+        BinaryMask.builder(menu)
+                .item(new ItemStack(Material.WHITE_STAINED_GLASS_PANE))
+                .pattern("000000000")
+                .pattern("000000000")
+                .pattern("000000000")
+                .pattern("111111111")
+                .pattern("000000000")
+                .build()
+                .apply(menu);
+        addMenuItem(43, Material.OAK_DOOR, "Back", this::displayMainScreen);
+
+        ClickOptions clickOptions = ClickOptions.builder()
+                .allClickTypes()
+                .allActions()
+                .build();
+
+        Slot.ClickHandler clickHandler = (player, clickInformation) -> {
+            int slotIndex = clickInformation.getClickedSlot().getIndex();
+
+            if (clickInformation.isAddingItem()) {
+                try {
+                    ItemStack itemStack;
+                    if (clickInformation.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY &&
+                        bazaar.getStocks().get(slotIndex) != null) {
+                        // @todo fix this
+                        itemStack = bazaar.getStocks().get(slotIndex);
+                        itemStack.setAmount(itemStack.getAmount() + clickInformation.getItemAmount());
+                    }
+                    else {
+                        itemStack = new ItemStack(clickInformation.getAddingItem());
+                    }
+                    bazaarManager.setStock(bazaar, slotIndex, itemStack);
+                } catch (UnexpectedException e) {
+                    e.printStackTrace();
+                } catch (NotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            else if (clickInformation.isTakingItem()) {
+                int leftAmount = bazaar.getStocks().get(slotIndex).getAmount() - getItemAmount(clickInformation.getAction(), bazaar.getStocks().get(slotIndex).getAmount());
+                if (leftAmount <= 0) {
+                    try {
+                        bazaarManager.setStock(bazaar, slotIndex, null);
+                    } catch (UnexpectedException e) {
+                        e.printStackTrace();
+                    } catch (NotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else {
+                    // @todo fix this
+                    ItemStack itemStack = bazaar.getStocks().get(slotIndex);
+                    itemStack.setAmount(leftAmount);
+                    try {
+                        bazaarManager.setStock(bazaar, slotIndex, itemStack);
+                    } catch (UnexpectedException e) {
+                        e.printStackTrace();
+                    } catch (NotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+        };
+
+        IntStream.range(0, 27).forEach(i -> {
+            menu.getSlot(i).setItem(bazaar.getStocks().get(i));
+            menu.getSlot(i).setClickOptions(clickOptions);
+            menu.getSlot(i).setClickHandler(clickHandler);
+        });
+    }
+
+    private void displayEditItemsScreen() {
+        menu.clear();
+        applyGlassBorder();
+        fillFromBazaar(true);
+        addMenuItem(34, Material.OAK_DOOR, "Back", this::displayMainScreen);
+
+
+        Slot.ClickHandler clickHandler = (player, clickInformation) -> {
+            if (clickInformation.getClickedSlot().getItem(player) == null) {
+                ItemStack itemStack = clickInformation.getAddingItem();
+                clickInformation.getClickedSlot().setItem(itemStack);
+                setItemPricePrompt(clickInformation.getClickedSlot().getIndex());
+            }
+            else if (clickInformation.getClickType() == ClickType.LEFT) { // Edit price
+            }
+            else if (clickInformation.getClickType() == ClickType.RIGHT) { // Delete item
+            }
+        };
+
+        menu.getSlot(10).setClickHandler(clickHandler);
+        menu.getSlot(11).setClickHandler(clickHandler);
+        menu.getSlot(12).setClickHandler(clickHandler);
+        menu.getSlot(13).setClickHandler(clickHandler);
+        menu.getSlot(14).setClickHandler(clickHandler);
+        menu.getSlot(15).setClickHandler(clickHandler);
+        menu.getSlot(16).setClickHandler(clickHandler);
+        menu.getSlot(17).setClickHandler(clickHandler);
+    }
+
+    private void setItemPricePrompt(int itemSlotIndex) {
+        menu.close(player);
+
+        new PromptFactory(plugin)
+                .player(player)
+                .addPrompt(new BNumericPrompt("Enter selling price for the item stack, type `cancel` to cancel", false, true), "sellingprice")
+                .addPrompt(new BNumericPrompt("Enter buying price for the item stack, type `cancel` to cancel", false, true), "buyingprice")
+                .onComplete(map -> {
+                    menu.open(player);
+                    try {
+                        bazaarManager.setItem(
+                                bazaar,
+                                convertItemSlotToBazaarIndex(itemSlotIndex),
+                                menu.getSlot(itemSlotIndex).getItem(player),
+                                (double)map.getOrDefault("sellingprice", 0),
+                                (double)map.getOrDefault("buyingprice", 0)
+                        );
+                        fillFromBazaar(true);
+                    } catch (UnexpectedException e) {
+                        e.printStackTrace();
+                    } catch (NotFoundException e) {
+                        e.printStackTrace();
+                    } catch (InvalidInputException e) {
+                        e.printStackTrace();
+                    }
+                })
+                .onCancel(() -> {
+                    menu.clear(itemSlotIndex);
+                    menu.open(player);
+                })
+                .withTimeout(30)
+                .withCancellationToken("cancel")
+                .build()
+                .begin();
+    }
+
+    private void changeVillagerNamePrompt() {
+        menu.close(player);
+
+        new PromptFactory(plugin)
+                .player(player)
+                .addPrompt(new BStringPrompt("Please type your shop's name to the chat, type `cancel` to cancel"), "villagername")
+                .onComplete(map -> {
+                    villager.setCustomName(map.get("villagername").toString());
+                })
+                .withTimeout(30)
+                .withCancellationToken("cancel")
+                .build()
+                .begin();
+    }
+
+    private void changeVillagerBiome() {
+        menu.clear();
+        applyGlassBorder();
+
+        addMenuItem(10, Material.GRASS_BLOCK, "PLAIN", () -> villager.setVillagerType(Villager.Type.PLAINS));
+        addMenuItem(11, Material.SAND, "SAND", () -> villager.setVillagerType(Villager.Type.DESERT));
+        addMenuItem(12, Material.JUNGLE_WOOD, "JUNGLE", () -> villager.setVillagerType(Villager.Type.JUNGLE));
+        addMenuItem(13, Material.SNOW, "SNOW", () -> villager.setVillagerType(Villager.Type.SNOW));
+        addMenuItem(14, Material.ACACIA_WOOD, "SAVANNA", () -> villager.setVillagerType(Villager.Type.SAVANNA));
+        addMenuItem(15, Material.COARSE_DIRT, "SWAMP", () -> villager.setVillagerType(Villager.Type.SWAMP));
+        addMenuItem(16, Material.SPRUCE_WOOD, "TAIGA", () -> villager.setVillagerType(Villager.Type.TAIGA));
+
+        addMenuItem(34, Material.OAK_DOOR, "Back", this::displayMainScreen);
     }
 
     private ItemStack getIcon(Material m, String text) {
@@ -68,295 +251,84 @@ public class VillagerBazaar {
         return iconItem;
     }
 
-    private void glassBorder(Menu screen) {
-        //Glass Decorations
-        ItemStack glass = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-
-        IntStream.range(0, 10).forEach(n -> {
-            screen.getSlot(n).setItem(glass);
-        });
-
-        screen.getSlot(17).setItem(glass);
-        screen.getSlot(18).setItem(glass);
-        screen.getSlot(26).setItem(glass);
-        screen.getSlot(27).setItem(glass);
-
-        IntStream.range(35, 45).forEach(n -> {
-            screen.getSlot(n).setItem(glass);
-        });
-    }
-
-    private void distributeItems(Menu screen, List<BazaarItem> items) {
-        Set<Integer> ignore = new HashSet<Integer>(){{
-            add(17);
-            add(18);
-            add(26);
-            add(27);
-        }};
-        int offset = 10;
-        int index = 0;
-
-
-        for (Iterator it = items.iterator(); it.hasNext(); ++index) {
-            int itemIndex = offset + index;
-            if (!ignore.contains(itemIndex)) {
-                BazaarItem item = (BazaarItem) it.next();
-
-                ItemStack displayItem = new ItemStack(item.getMaterial(), 1);
-                ItemMeta itemMeta = displayItem.getItemMeta();
-
-                int stocks = bazaar.getStocks().getOrDefault(item.getMaterial(),0);
-
-
-                itemMeta.setLore(Arrays.asList(
-                        ChatColor.RED + "Sell: " + item.getSellPrice(),
-                        ChatColor.AQUA +"Buy: " + item.getBuyPrice(),
-                        ChatColor.DARK_GREEN + "Stock: " + stocks)
-                );
-
-                displayItem.setItemMeta(itemMeta);
-                screen.getSlot(itemIndex).setItem(displayItem);
-            }
-        }
-    }
-
-    private void show(Menu screen, Player p) {
-
-        this.glassBorder(screen);
-
-        //Customize Button
-        if (this.canEdit()) {
-
-            if (this.stage != VillagerBazaarStage.EDIT) {
-                //Open EditScreen
-                screen.getSlot(43).setClickHandler((player, info) -> {
-                    screen.close(p);
-                    this.editScreen();
-                });
-                ;
-                screen.getSlot(43)
-                      .setItem(this.getIcon(Material.BOOK, "Customize"));
-            } else {
-                //Return Start Screen
-                screen.getSlot(43).setClickHandler((player, info) -> {
-                    screen.close(p);
-                    this.startBazaar();
-                });
-                screen.getSlot(43).setItem(this.getIcon(Material.TIPPED_ARROW, "Back"));
-            }
-        }
-
-        //Close Handler
-        screen.setCloseHandler((player, menu1) -> {
-            this.stopBazaar(screen, player);
-        });
-
-        //Close Button
-        screen.getSlot(44).setClickHandler((player, info) -> {
-            this.stopBazaar(screen, player);
-        });
-        screen.getSlot(44).setItem(this.getIcon(Material.ACACIA_DOOR, "Exit"));
-
-        //Draw
-        screen.open(p);
-    }
-
-    public void startBazaar() {
-        this.stage = VillagerBazaarStage.SELL;
-        Menu screen = createMenu();
-        List<BazaarItem> items = this.bazaar.getItems();
-        this.distributeItems(screen, items);
-        this.show(screen, this.p);
-    }
-
-    private void editScreen() {
-        this.stage = VillagerBazaarStage.EDIT;
-        Menu screen = createMenu();
-
-        //#region Type Changer
-        screen.getSlot(10).setClickHandler((player, info) -> {
-            this.customizeScreen();
-        });
-        screen.getSlot(10).setItem(this.getIcon(Material.ARMOR_STAND, "Customize Type"));
-        //#endregion
-
-        //#region Name Changer
-        screen.getSlot(11).setClickHandler((player, info) -> {
-
-            screen.close(player);
-
-            new PromptFactory(plugin)
-                .player(p)
-                .addPrompt(new BStringPrompt("Please type your shop's name to the chat, type `cancel` to cancel"), "villagername")
-                .onComplete(map -> {
-                    v.setCustomName(map.get("villagername").toString());
-                })
-                .withTimeout(30)
-                .withCancellationToken("cancel")
+    private void applyGlassBorder() {
+        BinaryMask.builder(menu)
+                .item(new ItemStack(Material.WHITE_STAINED_GLASS_PANE))
+                .pattern("111111111")
+                .pattern("100000001")
+                .pattern("111111111")
+                .pattern("100000001")
+                .pattern("111111111")
                 .build()
-                .begin();
-        });
-        screen.getSlot(11).setItem(this.getIcon(Material.NAME_TAG, "Change Name"));
-        //#endregion,
-
-
-        //#region Item Add Screen
-        screen.getSlot(14).setClickHandler((player, info) -> {
-            this.itemAddScreen();
-        });
-        screen.getSlot(14).setItem(this.getIcon(Material.BUCKET, "Add Item"));
-        //#endregion
-
-        this.show(screen, this.p);
-    }
-
-    private void customizeScreen() {
-        this.stage = VillagerBazaarStage.CUSTOMIZE;
-        Menu screen = createMenu();
-
-        //#region Villager Type Customization
-        //Plain Villager
-        screen.getSlot(10).setClickHandler((player, info) -> {
-            this.v.setVillagerType(Villager.Type.PLAINS);
-        });
-        screen.getSlot(10).setItem(this.getIcon(Material.GRASS_BLOCK, "PLAIN"));
-
-        //Desert Villager
-        screen.getSlot(11).setClickHandler((player, info) -> {
-            this.v.setVillagerType(Villager.Type.DESERT);
-        });
-        screen.getSlot(11).setItem(this.getIcon(Material.SAND, "DESERT"));
-
-        //Jungle Villager
-        screen.getSlot(12).setClickHandler((player, info) -> {
-            this.v.setVillagerType(Villager.Type.JUNGLE);
-        });
-        screen.getSlot(12).setItem(this.getIcon(Material.JUNGLE_WOOD, "JUNGLE"));
-
-        //Snow Villager
-        screen.getSlot(13).setClickHandler((player, info) -> {
-            this.v.setVillagerType(Villager.Type.SNOW);
-        });
-        screen.getSlot(13).setItem(this.getIcon(Material.SNOW, "SNOW"));
-
-        //SAVANNA Villager
-        screen.getSlot(14).setClickHandler((player, info) -> {
-            this.v.setVillagerType(Villager.Type.SAVANNA);
-        });
-        screen.getSlot(14).setItem(this.getIcon(Material.ACACIA_WOOD, "SAVANNA"));
-
-        //SWAMP Villager
-        screen.getSlot(15).setClickHandler((player, info) -> {
-            this.v.setVillagerType(Villager.Type.SWAMP);
-        });
-        screen.getSlot(15).setItem(this.getIcon(Material.COARSE_DIRT, "SWAMP"));
-
-        //TAIGA Villager
-        screen.getSlot(16).setClickHandler((player, info) -> {
-            this.v.setVillagerType(Villager.Type.TAIGA);
-        });
-        screen.getSlot(16).setItem(this.getIcon(Material.SPRUCE_WOOD, "TAIGA"));
-        //#endregion
-
-        this.show(screen, this.p);
-    }
-
-    private void itemAddScreen() {
-        this.stage = VillagerBazaarStage.ITEMADD;
-        Menu screen = createMenu();
-        //FillScreen with Glasses
-        ItemStack glass = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-        IntStream.range(0, 44).forEach(n -> {
-            screen.getSlot(n).setItem(glass);
-        });
-
-        screen.getSlot(22).setItem(null);
-        ClickOptions cli = ClickOptions.builder().allow(InventoryAction.PLACE_ONE)
-                                       .allow(InventoryAction.PLACE_SOME)
-                                       .allow(InventoryAction.PLACE_ALL)
-                                       .allow(InventoryAction.MOVE_TO_OTHER_INVENTORY)
-                                       .allow(ClickType.LEFT).allow(ClickType.DROP)
-                                       .allow(ClickType.RIGHT).build();
-
-        screen.getSlot(22).setClickOptions(cli);
-        screen.getSlot(22).setClickHandler((player, click) -> {
-            if (click.isAddingItem()) {
-
-                //Player put item in empty box.
-                ItemStack addingItem = click.getAddingItem();
-                Material m = addingItem.getType();
-                int amount = addingItem.getAmount();
-
-                player.sendMessage(m.toString());
-
-                boolean isExisting = this.bazaar.itemExists(m);
-
-                if (isExisting) {
-                    try {
-                        this.bazaarManager.addStock(this.bazaar, m, amount);
-                    } catch (InvalidInputException invalidInputException) {
-                        player.sendMessage("invalidInputException");
-                        screen.close(player);
-                    } catch (UnexpectedException unexpectedException) {
-                        player.sendMessage("unexpectedException");
-                        screen.close(player);
-                    } catch (NotFoundException notFoundException) {
-                        player.sendMessage("notFoundException");
-                        screen.close(player);
-                    }
-                } else {
-                    new PromptFactory(plugin)
-                        .player(p)
-                        .addPrompt(new BNumericPrompt("Enter selling price for 1 item, type `cancel` to cancel", false, true), "sellingprice")
-                        .addPrompt(new BNumericPrompt("Enter buying price for 1 item, type `cancel` to cancel", false, true), "buyingprice")
-                        .onComplete(map -> {
-                            try {
-                                bazaarManager.addItem(bazaar, m, (double)map.get("sellingprice"), (double)map.get("buyingprice"), amount);
-                                player.sendMessage("Your item is added");
-                            } catch (InvalidInputException invalidInputException) {
-                                player.sendMessage("invalidInputException");
-                                screen.close(player);
-                            } catch (UnexpectedException unexpectedException) {
-                                player.sendMessage("unexpectedException");
-                                screen.close(player);
-                            } catch (NotFoundException notFoundException) {
-                                player.sendMessage("notFoundException");
-                                screen.close(player);
-                            }
-                        })
-                        .onCancel(() -> {
-                            // @todo if player is offline all items are lost
-                            if (player.isOnline()) {
-                                p.getInventory().addItem(new ItemStack(m, amount));
-                            }
-                            p.sendMessage("The prompt has been cancelled");
-                        })
-                        .withTimeout(30)
-                        .withCancellationToken("cancel")
-                        .build()
-                        .begin();
-                }
-
-            }
-            player.sendMessage(click.getAction().toString());
-        });
-
-
-        this.show(screen, this.p);
-    }
-
-    private void stopBazaar(Menu screen, Player player) {
-        this.stage = VillagerBazaarStage.SELL;
-        screen.close(player);
+                .apply(menu);
     }
 
     private boolean canEdit() {
         if (bazaar.getBazaarType() == BazaarType.ADMIN) {
-            return p.isOp() || perm.has(p, "villagerbazaar.admin.manage"); // @todo add permission to edit admin bazaars
+            return player.isOp() || perm.has(player, "villagerbazaar.admin.manage");
         }
         else {
-            return p.isOp() || (bazaar.getPlayerUniqueId() == p.getUniqueId());
+            return player.isOp() || (bazaar.getPlayerUniqueId() == player.getUniqueId());
         }
     }
 
+    private void fillFromBazaar(boolean isEditMode) {
+        int slotIndex = 10;
+        for (BazaarItem bazaarItem : bazaar.getItems()) {
+            if (bazaarItem != null) {
+                ItemStack itemStack = bazaarItem.getItemStack();
+                ItemMeta itemMeta = itemStack.getItemMeta();
+                List<String> lore = new ArrayList<>();
+                List<String> currentLore = itemMeta.getLore();
+                if (currentLore != null) {
+                    lore.addAll(currentLore);
+                }
+
+                if (isEditMode) {
+                    lore.add("EDIT (Left-click)");
+                    lore.add("DELETE (Right-click)");
+                }
+                else {
+                    lore.add("BUY (Left-click): $" + bazaarItem.getBuyPrice());
+                    if (bazaar.getBazaarType() == BazaarType.ADMIN) {
+                        lore.add("SELL (Right-click): $" + bazaarItem.getSellPrice());
+                    }
+                }
+                itemMeta.setLore(lore);
+                itemStack.setItemMeta(itemMeta);
+                menu.getSlot(slotIndex).setItem(bazaarItem.getItemStack());
+            } else {
+                menu.clear(slotIndex);
+            }
+            slotIndex++;
+        }
+    }
+
+    private int convertItemSlotToBazaarIndex(int itemSlotIndex) {
+        return itemSlotIndex - 10;
+    }
+
+    public int getItemAmount(InventoryAction action, int currentAmount) {
+        switch (action) {
+            case PICKUP_ONE:
+            case DROP_ONE_SLOT:
+                return 1;
+            case PICKUP_HALF:
+                return (int) Math.ceil(currentAmount / 2D);
+            case PICKUP_ALL:
+            case DROP_ALL_SLOT:
+                return currentAmount;
+            case MOVE_TO_OTHER_INVENTORY:
+                return currentAmount;
+            case PICKUP_SOME: // Don't know how this is caused
+            case SWAP_WITH_CURSOR:
+            default:
+                throw new UnsupportedOperationException();
+        }
+    }
+
+    private void addMenuItem(int slot, Material material, String title, Runnable action) {
+        menu.getSlot(slot).setItem(getIcon(material, title));
+        menu.getSlot(slot).setClickHandler((player, info) -> action.run());
+    }
 }

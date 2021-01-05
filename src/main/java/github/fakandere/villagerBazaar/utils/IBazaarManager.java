@@ -6,8 +6,8 @@ import github.fakandere.villagerBazaar.exceptions.NotFoundException;
 import github.fakandere.villagerBazaar.exceptions.TransactionFailureException;
 import github.fakandere.villagerBazaar.models.Bazaar;
 import github.fakandere.villagerBazaar.models.BazaarItem;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.rmi.UnexpectedException;
 import java.util.UUID;
@@ -18,9 +18,7 @@ public interface IBazaarManager {
     void createAdminBazaar(UUID villagerUniqueId) throws UnexpectedException;
     void createPlayerBazaar(UUID villagerUniqueId, UUID playerUniqueId) throws UnexpectedException;
     void makePurchase(BazaarItem bazaarItem, Player player, int quantity) throws InsufficientFundsException, TransactionFailureException, UnexpectedException;
-    void addStock(Bazaar bazaar, Material material, int amount) throws InvalidInputException, UnexpectedException, NotFoundException;
-    void removeStock(Bazaar bazaar, Material material, int amount) throws InvalidInputException, UnexpectedException, NotFoundException;
-    void addItem(Bazaar bazaar, Material material, double sellPrice, double buyPrice, int amount) throws  InvalidInputException, UnexpectedException, NotFoundException;
-    void removeItem(Bazaar bazaar, BazaarItem item) throws UnexpectedException, NotFoundException;
+    void setItem(Bazaar bazaar, int index, ItemStack itemStack, double sellPrice, double buyPrice) throws UnexpectedException, NotFoundException, InvalidInputException;
+    void setStock(Bazaar bazaar, int index, ItemStack itemStack) throws UnexpectedException, NotFoundException;
 
 }
