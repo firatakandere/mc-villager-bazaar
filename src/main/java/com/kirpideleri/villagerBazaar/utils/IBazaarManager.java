@@ -1,0 +1,25 @@
+package com.kirpideleri.villagerBazaar.utils;
+
+import com.kirpideleri.villagerBazaar.models.Bazaar;
+import com.kirpideleri.villagerBazaar.exceptions.InsufficientFundsException;
+import com.kirpideleri.villagerBazaar.exceptions.InvalidInputException;
+import com.kirpideleri.villagerBazaar.exceptions.NotFoundException;
+import com.kirpideleri.villagerBazaar.exceptions.TransactionFailureException;
+import com.kirpideleri.villagerBazaar.models.BazaarItem;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import java.rmi.UnexpectedException;
+import java.util.UUID;
+
+public interface IBazaarManager {
+    Bazaar getBazaar(UUID villagerUniqueId);
+    void deleteBazaar(UUID villagerUniqueId) throws NotFoundException;
+    void createAdminBazaar(UUID villagerUniqueId) throws UnexpectedException;
+    void createPlayerBazaar(UUID villagerUniqueId, UUID playerUniqueId) throws UnexpectedException;
+    void makePurchase(BazaarItem bazaarItem, Player player, int quantity) throws InsufficientFundsException, TransactionFailureException, UnexpectedException;
+    void setItem(Bazaar bazaar, int index, ItemStack itemStack, double sellPrice, double buyPrice) throws UnexpectedException, NotFoundException, InvalidInputException;
+    void deleteItem(Bazaar bazaar, int index) throws UnexpectedException, NotFoundException;
+    void setStock(Bazaar bazaar, int index, ItemStack itemStack) throws UnexpectedException, NotFoundException;
+
+}
